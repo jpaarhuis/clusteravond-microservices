@@ -4,7 +4,6 @@ using Microsoft.ApplicationInsights.ServiceFabric;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -17,13 +16,11 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
-using StackExchange.Redis;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using WebMVC.Infrastructure;
 using WebMVC.Infrastructure.Middlewares;
-using WebMVC.Services;
 
 namespace Microsoft.eShopOnContainers.WebMVC
 {
@@ -39,14 +36,6 @@ namespace Microsoft.eShopOnContainers.WebMVC
         // This method gets called by the runtime. Use this method to add services to the IoC container.
         public void ConfigureServices(IServiceCollection services)
         {
-    //        services.AddHealthChecks()
-    //.AddCheck("self", () => HealthCheckResult.Healthy())
-    //.AddUrlGroup(new Uri(Configuration["CatalogUrlHC"]), name: "catalogapi-check", tags: new string[] { "catalogapi" })
-    //.AddUrlGroup(new Uri(Configuration["OrderingUrlHC"]), name: "orderingapi-check", tags: new string[] { "orderingapi" })
-    //.AddUrlGroup(new Uri(Configuration["BasketUrlHC"]), name: "basketapi-check", tags: new string[] { "basketapi" })
-    //.AddUrlGroup(new Uri(Configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" })
-    //.AddUrlGroup(new Uri(Configuration["PaymentUrlHC"]), name: "paymentapi-check", tags: new string[] { "paymentapi" })
-
             services.AddAppInsight(Configuration)
                     .AddCustomMvc(Configuration)
                     .AddHttpClientServices(Configuration)
@@ -159,14 +148,6 @@ namespace Microsoft.eShopOnContainers.WebMVC
 
             services.AddSession();
 
-            if (configuration.GetValue<string>("IsClusterEnv") == bool.TrueString)
-            {
-                services.AddDataProtection(opts =>
-                {
-                    opts.ApplicationDiscriminator = "eshop.webmvc";
-                })
-                .PersistKeysToRedis(ConnectionMultiplexer.Connect(configuration["DPConnectionString"]), "DataProtection-Keys");
-            }
             return services;
         }
 

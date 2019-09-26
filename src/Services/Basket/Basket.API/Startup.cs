@@ -22,12 +22,11 @@ using Microsoft.eShopOnContainers.Services.Basket.API.IntegrationEvents.EventHan
 using Microsoft.eShopOnContainers.Services.Basket.API.IntegrationEvents.Events;
 using Microsoft.eShopOnContainers.Services.Basket.API.Model;
 using Microsoft.eShopOnContainers.Services.Basket.API.Services;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Collections.Generic;
@@ -65,22 +64,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             services.AddCustomHealthCheck(Configuration);
 
             services.Configure<BasketSettings>(Configuration);
-
-            //By connecting here we are making sure that our service
-            //cannot start until redis is ready. This might slow down startup,
-            //but given that there is a delay on resolving the ip address
-            //and then creating the connection it seems reasonable to move
-            //that cost to startup instead of having the first request pay the
-            //penalty.
-            services.AddSingleton<ConnectionMultiplexer>(sp =>
-            {
-                var settings = sp.GetRequiredService<IOptions<BasketSettings>>().Value;
-                var configuration = ConfigurationOptions.Parse(settings.ConnectionString, true);
-
-                configuration.ResolveDns = true;
-
-                return ConnectionMultiplexer.Connect(configuration);
-            });
 
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
             {
@@ -130,7 +113,9 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
                     .AllowCredentials());
             });
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddTransient<IBasketRepository, RedisBasketRepository>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IMemoryCache>(new MemoryCache(new MemoryCacheOptions()));
+            services.AddTransient<IBasketRepository, MemoryCacheBasketRepository>();
             services.AddTransient<IIdentityService, IdentityService>();
 
             services.AddOptions();
@@ -270,18 +255,12 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             hcBuilder.AddCheck("self", () => HealthCheckResult.Healthy());
 
             hcBuilder
-                .AddRedis(
-                    configuration["ConnectionString"],
-                    name: "redis-check",
-                    tags: new string[] { "redis" });
-
-            hcBuilder
                 .AddAzureServiceBusTopic(
                     configuration["EventBusConnection"],
                     topicName: "REPLACE_TOPIC_NAME",
                     name: "basket-servicebus-check",
                     tags: new string[] { "servicebus" });
-            
+
             return services;
         }
     }

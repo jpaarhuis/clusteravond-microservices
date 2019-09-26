@@ -1,11 +1,9 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using IdentityServer4.Services;
-using IdentityServer4;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.ServiceFabric;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,14 +15,11 @@ using Microsoft.eShopOnContainers.Services.Identity.API.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
 using System;
-using System.Linq;
 using System.Reflection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Collections.Generic;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API
 {
@@ -60,15 +55,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
 
             services.AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-
-            if (Configuration.GetValue<string>("IsClusterEnv") == bool.TrueString)
-            {
-                services.AddDataProtection(opts =>
-                {
-                    opts.ApplicationDiscriminator = "eshop.identity";
-                })
-                .PersistKeysToRedis(ConnectionMultiplexer.Connect(Configuration["DPConnectionString"]), "DataProtection-Keys");
-            }
 
             services.AddHealthChecks()
                 .AddCheck("self", () => HealthCheckResult.Healthy())
