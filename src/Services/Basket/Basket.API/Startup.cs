@@ -278,7 +278,7 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             hcBuilder
                 .AddAzureServiceBusTopic(
                     configuration["EventBusConnection"],
-                    topicName: "eshop_event_bus",
+                    topicName: "REPLACE_TOPIC_NAME",
                     name: "basket-servicebus-check",
                     tags: new string[] { "servicebus" });
             

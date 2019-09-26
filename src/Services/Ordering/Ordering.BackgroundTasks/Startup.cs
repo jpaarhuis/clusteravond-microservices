@@ -114,7 +114,7 @@ namespace Ordering.BackgroundTasks
             hcBuilder
                 .AddAzureServiceBusTopic(
                     configuration["EventBusConnection"],
-                    topicName: "eshop_event_bus",
+                    topicName: "REPLACE_TOPIC_NAME",
                     name: "orderingtask-servicebus-check",
                     tags: new string[] { "servicebus" });
 
