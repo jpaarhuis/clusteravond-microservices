@@ -6,7 +6,6 @@
         public string CatalogUrl { get; set; }
         public string OrderingUrl { get; set; }
         public string IdentityUrl { get; set; }
-        public string SignalrHubUrl { get; set; }
         public Logging Logging { get; set; }
         public bool UseCustomizationData { get; set; }
     }

@@ -254,12 +254,8 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 options.Scope.Add("profile");
                 options.Scope.Add("orders");
                 options.Scope.Add("basket");
-                options.Scope.Add("webshoppingagg");
-                options.Scope.Add("orders.signalrhub");
             });
 
-
-            /* STOLEN FROM GATEWAY */
             var authenticationProviderKey = "IdentityApiKey";
             services.AddAuthentication()
                 .AddJwtBearer(authenticationProviderKey, x =>
@@ -268,7 +264,7 @@ namespace Microsoft.eShopOnContainers.WebMVC
                     x.RequireHttpsMetadata = false;
                     x.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
                     {
-                        ValidAudiences = new[] { "orders", "basket", "webshoppingagg" }
+                        ValidAudiences = new[] { "orders", "basket" }
                     };
                     x.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents()
                     {
