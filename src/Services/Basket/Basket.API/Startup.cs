@@ -47,8 +47,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            RegisterAppInsights(services);
-
             // Add framework services.
             services.AddMvc(options =>
                 {
@@ -72,7 +70,7 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
                 var serviceBusConnectionString = Configuration["EventBusConnection"];
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString);
 
-                return new DefaultServiceBusPersisterConnection(serviceBusConnection, logger);
+                return new DefaultServiceBusPersisterConnection(serviceBusConnection);
             });
 
             RegisterEventBus(services);
@@ -138,17 +136,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
                 app.UsePathBase(pathBase);
             }
 
-            app.UseHealthChecks("/hc", new HealthCheckOptions()
-            {
-                Predicate = _ => true,
-                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-            });
-
-            app.UseHealthChecks("/liveness", new HealthCheckOptions
-            {
-                Predicate = r => r.Name.Contains("self")
-            });
-
             app.UseStaticFiles();
             app.UseCors("CorsPolicy");
 
@@ -166,24 +153,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
 
             ConfigureEventBus(app);
 
-        }
-
-        private void RegisterAppInsights(IServiceCollection services)
-        {
-            services.AddApplicationInsightsTelemetry(Configuration);
-            var orchestratorType = Configuration.GetValue<string>("OrchestratorType");
-
-            if (orchestratorType?.ToUpper() == "K8S")
-            {
-                // Enable K8s telemetry initializer
-                services.AddApplicationInsightsKubernetesEnricher();
-            }
-            if (orchestratorType?.ToUpper() == "SF")
-            {
-                // Enable SF telemetry initializer
-                services.AddSingleton<ITelemetryInitializer>((serviceProvider) =>
-                    new FabricTelemetryInitializer());
-            }
         }
 
         private void ConfigureAuthService(IServiceCollection services)
@@ -227,7 +196,7 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
                 var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
                 var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
 
-                return new EventBusServiceBus(serviceBusPersisterConnection, logger,
+                return new EventBusServiceBus(serviceBusPersisterConnection,
                     eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
             });
 
@@ -257,7 +226,7 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             hcBuilder
                 .AddAzureServiceBusTopic(
                     configuration["EventBusConnection"],
-                    topicName: "REPLACE_TOPIC_NAME",
+                    topicName: "eshop_01",
                     name: "basket-servicebus-check",
                     tags: new string[] { "servicebus" });
 

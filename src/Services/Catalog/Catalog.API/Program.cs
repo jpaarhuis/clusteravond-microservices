@@ -4,9 +4,7 @@ using Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF;
 using Microsoft.eShopOnContainers.Services.Catalog.API.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Serilog;
 using System;
 using System.IO;
 
@@ -21,39 +19,28 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
         {
             var configuration = GetConfiguration();
 
-            Log.Logger = CreateSerilogLogger(configuration);
-
             try
             {
-                Log.Information("Configuring web host ({ApplicationContext})...", AppName);
                 var host = BuildWebHost(configuration, args);
 
-                Log.Information("Applying migrations ({ApplicationContext})...", AppName);
                 host.MigrateDbContext<CatalogContext>((context, services) =>
                 {
                     var env = services.GetService<IHostingEnvironment>();
                     var settings = services.GetService<IOptions<CatalogSettings>>();
-                    var logger = services.GetService<ILogger<CatalogContextSeed>>();
-
+                
                     new CatalogContextSeed()
-                        .SeedAsync(context, env, settings, logger)
+                        .SeedAsync(context, env, settings)
                         .Wait();
                 })
                 .MigrateDbContext<IntegrationEventLogContext>((_, __) => { });
 
-                Log.Information("Starting web host ({ApplicationContext})...", AppName);
                 host.Run();
 
                 return 0;
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Program terminated unexpectedly ({ApplicationContext})!", AppName);
                 return 1;
-            }
-            finally
-            {
-                Log.CloseAndFlush();
             }
         }
 
@@ -65,19 +52,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseWebRoot("Pics")
                 .UseConfiguration(configuration)
-                .UseSerilog()
                 .Build();
-
-        private static Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
-        {
-            return new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .Enrich.WithProperty("ApplicationContext", AppName)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .ReadFrom.Configuration(configuration)
-                .CreateLogger();
-        }
 
         private static IConfiguration GetConfiguration()
         {

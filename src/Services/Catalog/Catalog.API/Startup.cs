@@ -43,14 +43,12 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddAppInsight(Configuration)
-                .AddCustomMVC(Configuration)
+            services.AddCustomMVC(Configuration)
                 .AddCustomDbContext(Configuration)
                 .AddCustomOptions(Configuration)
                 .AddIntegrationServices(Configuration)
                 .AddEventBus(Configuration)
-                .AddSwagger()
-                .AddCustomHealthCheck(Configuration);
+                .AddSwagger();
 
             var container = new ContainerBuilder();
             container.Populate(services);
@@ -72,17 +70,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                 loggerFactory.CreateLogger<Startup>().LogDebug("Using PATH BASE '{pathBase}'", pathBase);
                 app.UsePathBase(pathBase);
             }
-
-            app.UseHealthChecks("/hc", new HealthCheckOptions()
-            {
-                Predicate = _ => true,
-                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-            });
-
-            app.UseHealthChecks("/liveness", new HealthCheckOptions
-            {
-                Predicate = r => r.Name.Contains("self")
-            });
 
             app.UseCors("CorsPolicy");
 
@@ -107,26 +94,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
 
     public static class CustomExtensionMethods
     {
-        public static IServiceCollection AddAppInsight(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddApplicationInsightsTelemetry(configuration);
-            var orchestratorType = configuration.GetValue<string>("OrchestratorType");
-
-            if (orchestratorType?.ToUpper() == "K8S")
-            {
-                // Enable K8s telemetry initializer
-                services.AddApplicationInsightsKubernetesEnricher();
-            }
-            if (orchestratorType?.ToUpper() == "SF")
-            {
-                // Enable SF telemetry initializer
-                services.AddSingleton<ITelemetryInitializer>((serviceProvider) =>
-                    new FabricTelemetryInitializer());
-            }
-
-            return services;
-        }
-
         public static IServiceCollection AddCustomMVC(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddMvc(options =>
@@ -145,39 +112,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                     .AllowAnyHeader()
                     .AllowCredentials());
             });
-
-            return services;
-        }
-
-        public static IServiceCollection AddCustomHealthCheck(this IServiceCollection services, IConfiguration configuration)
-        {
-            var accountName = configuration.GetValue<string>("AzureStorageAccountName");
-            var accountKey = configuration.GetValue<string>("AzureStorageAccountKey");
-
-            var hcBuilder = services.AddHealthChecks();
-
-            hcBuilder
-                .AddCheck("self", () => HealthCheckResult.Healthy())
-                .AddSqlServer(
-                    configuration["ConnectionString"],
-                    name: "CatalogDB-check",
-                    tags: new string[] { "catalogdb" });
-
-            if (!string.IsNullOrEmpty(accountName) && !string.IsNullOrEmpty(accountKey))
-            {
-                hcBuilder
-                    .AddAzureBlobStorage(
-                        $"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net",
-                        name: "catalog-storage-check",
-                        tags: new string[] { "catalogstorage" });
-            }
-
-            hcBuilder
-                .AddAzureServiceBusTopic(
-                    configuration["EventBusConnection"],
-                    topicName: "REPLACE_TOPIC_NAME",
-                    name: "catalog-servicebus-check",
-                    tags: new string[] { "servicebus" });
 
             return services;
         }
@@ -271,7 +205,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
 
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(settings.EventBusConnection);
 
-                return new DefaultServiceBusPersisterConnection(serviceBusConnection, logger);
+                return new DefaultServiceBusPersisterConnection(serviceBusConnection);
             });
 
             return services;
@@ -288,7 +222,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                   var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
                   var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
 
-                  return new EventBusServiceBus(serviceBusPersisterConnection, logger,
+                  return new EventBusServiceBus(serviceBusPersisterConnection,
                       eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
               });
 

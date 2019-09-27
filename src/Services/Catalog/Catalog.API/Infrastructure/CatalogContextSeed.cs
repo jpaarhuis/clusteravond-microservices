@@ -18,9 +18,9 @@
 
     public class CatalogContextSeed
     {
-        public async Task SeedAsync(CatalogContext context,IHostingEnvironment env,IOptions<CatalogSettings> settings,ILogger<CatalogContextSeed> logger)
+        public async Task SeedAsync(CatalogContext context,IHostingEnvironment env,IOptions<CatalogSettings> settings)
         {
-            var policy = CreatePolicy(logger, nameof(CatalogContextSeed));
+            var policy = CreatePolicy();
 
             await policy.ExecuteAsync(async () =>
             {
@@ -31,7 +31,7 @@
                 if (!context.CatalogBrands.Any())
                 {
                     await context.CatalogBrands.AddRangeAsync(useCustomizationData
-                        ? GetCatalogBrandsFromFile(contentRootPath, logger)
+                        ? GetCatalogBrandsFromFile(contentRootPath)
                         : GetPreconfiguredCatalogBrands());
 
                     await context.SaveChangesAsync();
@@ -40,7 +40,7 @@
                 if (!context.CatalogTypes.Any())
                 {
                     await context.CatalogTypes.AddRangeAsync(useCustomizationData
-                        ? GetCatalogTypesFromFile(contentRootPath, logger)
+                        ? GetCatalogTypesFromFile(contentRootPath)
                         : GetPreconfiguredCatalogTypes());
 
                     await context.SaveChangesAsync();
@@ -49,7 +49,7 @@
                 if (!context.CatalogItems.Any())
                 {
                     await context.CatalogItems.AddRangeAsync(useCustomizationData
-                        ? GetCatalogItemsFromFile(contentRootPath, context, logger)
+                        ? GetCatalogItemsFromFile(contentRootPath, context)
                         : GetPreconfiguredItems());
 
                     await context.SaveChangesAsync();
@@ -59,7 +59,7 @@
             });
         }
 
-        private IEnumerable<CatalogBrand> GetCatalogBrandsFromFile(string contentRootPath, ILogger<CatalogContextSeed> logger)
+        private IEnumerable<CatalogBrand> GetCatalogBrandsFromFile(string contentRootPath)
         {
             string csvFileCatalogBrands = Path.Combine(contentRootPath, "Setup", "CatalogBrands.csv");
 
@@ -76,14 +76,13 @@
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message);
                 return GetPreconfiguredCatalogBrands();
             }
 
             return File.ReadAllLines(csvFileCatalogBrands)
                                         .Skip(1) // skip header row
                                         .SelectTry(x => CreateCatalogBrand(x))
-                                        .OnCaughtException(ex => { logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message); return null; })
+                                        .OnCaughtException(ex => { return null; })
                                         .Where(x => x != null);
         }
 
@@ -114,7 +113,7 @@
             };
         }
 
-        private IEnumerable<CatalogType> GetCatalogTypesFromFile(string contentRootPath, ILogger<CatalogContextSeed> logger)
+        private IEnumerable<CatalogType> GetCatalogTypesFromFile(string contentRootPath)
         {
             string csvFileCatalogTypes = Path.Combine(contentRootPath, "Setup", "CatalogTypes.csv");
 
@@ -131,14 +130,13 @@
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message);
                 return GetPreconfiguredCatalogTypes();
             }
 
             return File.ReadAllLines(csvFileCatalogTypes)
                                         .Skip(1) // skip header row
                                         .SelectTry(x => CreateCatalogType(x))
-                                        .OnCaughtException(ex => { logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message); return null; })
+                                        .OnCaughtException(ex => { return null; })
                                         .Where(x => x != null);
         }
 
@@ -168,7 +166,7 @@
             };
         }
 
-        private IEnumerable<CatalogItem> GetCatalogItemsFromFile(string contentRootPath, CatalogContext context, ILogger<CatalogContextSeed> logger)
+        private IEnumerable<CatalogItem> GetCatalogItemsFromFile(string contentRootPath, CatalogContext context)
         {
             string csvFileCatalogItems = Path.Combine(contentRootPath, "Setup", "CatalogItems.csv");
 
@@ -186,7 +184,6 @@
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message);
                 return GetPreconfiguredItems();
             }
 
@@ -197,7 +194,7 @@
                         .Skip(1) // skip header row
                         .Select(row => Regex.Split(row, ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)") )
                         .SelectTry(column => CreateCatalogItem(column, csvheaders, catalogTypeIdLookup, catalogBrandIdLookup))
-                        .OnCaughtException(ex => { logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message); return null; })
+                        .OnCaughtException(ex => { return null; })
                         .Where(x => x != null);
         }
 
@@ -369,16 +366,12 @@
             }
         }
 
-        private Policy CreatePolicy( ILogger<CatalogContextSeed> logger, string prefix,int retries = 3)
+        private Policy CreatePolicy(int retries = 3)
         {
             return Policy.Handle<SqlException>().
                 WaitAndRetryAsync(
                     retryCount: retries,
-                    sleepDurationProvider: retry => TimeSpan.FromSeconds(5),
-                    onRetry: (exception, timeSpan, retry, ctx) =>
-                    {
-                        logger.LogWarning(exception, "[{prefix}] Exception {ExceptionType} with message {Message} detected on attempt {retry} of {retries}", prefix, exception.GetType().Name, exception.Message, retry, retries);
-                    }
+                    sleepDurationProvider: retry => TimeSpan.FromSeconds(5)
                 );
         }
     }

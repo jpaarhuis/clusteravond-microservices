@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.eShopOnContainers.Services.Identity.API.Extensions;
 using Microsoft.eShopOnContainers.Services.Identity.API.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -20,8 +19,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
     {
         private readonly IPasswordHasher<ApplicationUser> _passwordHasher = new PasswordHasher<ApplicationUser>();
 
-        public async Task SeedAsync(ApplicationDbContext context,IHostingEnvironment env,
-            ILogger<ApplicationDbContextSeed> logger, IOptions<AppSettings> settings,int? retry = 0)
+        public async Task SeedAsync(ApplicationDbContext context,IHostingEnvironment env, IOptions<AppSettings> settings,int? retry = 0)
         {
             int retryForAvaiability = retry.Value;
 
@@ -34,7 +32,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
                 if (!context.Users.Any())
                 {
                     context.Users.AddRange(useCustomizationData
-                        ? GetUsersFromFile(contentRootPath, logger)
+                        ? GetUsersFromFile(contentRootPath)
                         : GetDefaultUser());
 
                     await context.SaveChangesAsync();
@@ -42,7 +40,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
 
                 if (useCustomizationData)
                 {
-                    GetPreconfiguredImages(contentRootPath, webroot, logger);
+                    GetPreconfiguredImages(contentRootPath, webroot);
                 }
             }
             catch (Exception ex)
@@ -51,14 +49,12 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
                 {
                     retryForAvaiability++;
                     
-                    logger.LogError(ex, "EXCEPTION ERROR while migrating {DbContextName}", nameof(ApplicationDbContext));
-
-                    await SeedAsync(context,env,logger,settings, retryForAvaiability);
+                    await SeedAsync(context,env,settings, retryForAvaiability);
                 }
             }
         }
 
-        private IEnumerable<ApplicationUser> GetUsersFromFile(string contentRootPath, ILogger logger)
+        private IEnumerable<ApplicationUser> GetUsersFromFile(string contentRootPath)
         {
             string csvFileUsers = Path.Combine(contentRootPath, "Setup", "Users.csv");
 
@@ -80,8 +76,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message);
-
                 return GetDefaultUser();
             }
 
@@ -89,7 +83,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
                         .Skip(1) // skip header column
                         .Select(row => Regex.Split(row, ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)") )
                         .SelectTry(column => CreateApplicationUser(column, csvheaders))
-                        .OnCaughtException(ex => { logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message); return null; })
+                        .OnCaughtException(ex => { return null; })
                         .Where(x => x != null)
                         .ToList();
 
@@ -192,14 +186,13 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
             return csvheaders;
         }
 
-        static void GetPreconfiguredImages(string contentRootPath, string webroot, ILogger logger)
+        static void GetPreconfiguredImages(string contentRootPath, string webroot)
         {
             try
             {
                 string imagesZipFile = Path.Combine(contentRootPath, "Setup", "images.zip");
                 if (!File.Exists(imagesZipFile))
                 {
-                    logger.LogError("Zip file '{ZipFileName}' does not exists.", imagesZipFile);
                     return;
                 }
 
@@ -219,16 +212,11 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Data
                             }
                             entry.ExtractToFile(destinationFilename);
                         }
-                        else
-                        {
-                            logger.LogWarning("Skipped file '{FileName}' in zipfile '{ZipFileName}'", entry.Name, imagesZipFile);
-                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "EXCEPTION ERROR: {Message}", ex.Message); ;
             }
         }
     }

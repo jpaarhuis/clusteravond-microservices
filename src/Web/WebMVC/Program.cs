@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Serilog;
 using System;
 using System.IO;
 
@@ -17,26 +15,17 @@ namespace Microsoft.eShopOnContainers.WebMVC
         {
             var configuration = GetConfiguration();
 
-            Log.Logger = CreateSerilogLogger(configuration);
-
             try
             {
-                Log.Information("Configuring web host ({ApplicationContext})...", AppName);
                 var host = BuildWebHost(configuration, args);
 
-                Log.Information("Starting web host ({ApplicationContext})...", AppName);
                 host.Run();
 
                 return 0;
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Program terminated unexpectedly ({ApplicationContext})!", AppName);
                 return 1;
-            }
-            finally
-            {
-                Log.CloseAndFlush();
             }
         }
 
@@ -46,19 +35,7 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
                 .UseConfiguration(configuration)
-                .UseSerilog()
                 .Build();
-
-        private static Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
-        {
-            return new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .Enrich.WithProperty("ApplicationContext", AppName)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .ReadFrom.Configuration(configuration)
-                .CreateLogger();
-        }
 
         private static IConfiguration GetConfiguration()
         {

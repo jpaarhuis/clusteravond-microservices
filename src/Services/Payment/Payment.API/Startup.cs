@@ -35,8 +35,6 @@ namespace Payment.API
             services.AddCustomHealthCheck(Configuration);
             services.Configure<PaymentSettings>(Configuration);
 
-            RegisterAppInsights(services);
-
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<DefaultServiceBusPersisterConnection>>();
@@ -44,7 +42,7 @@ namespace Payment.API
                 var serviceBusConnectionString = Configuration["EventBusConnection"];
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString);
 
-                return new DefaultServiceBusPersisterConnection(serviceBusConnection, logger);
+                return new DefaultServiceBusPersisterConnection(serviceBusConnection);
             });
 
             RegisterEventBus(services);
@@ -57,46 +55,13 @@ namespace Payment.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            //loggerFactory.AddAzureWebAppDiagnostics();
-            //loggerFactory.AddApplicationInsights(app.ApplicationServices, LogLevel.Trace);
-
             var pathBase = Configuration["PATH_BASE"];
             if (!string.IsNullOrEmpty(pathBase))
             {
                 app.UsePathBase(pathBase);
             }
 
-
-            app.UseHealthChecks("/hc", new HealthCheckOptions()
-            {
-                Predicate = _ => true,
-                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-            });
-
-            app.UseHealthChecks("/liveness", new HealthCheckOptions
-            {
-                Predicate = r => r.Name.Contains("self")
-            });
-
             ConfigureEventBus(app);
-        }
-
-        private void RegisterAppInsights(IServiceCollection services)
-        {
-            services.AddApplicationInsightsTelemetry(Configuration);
-            var orchestratorType = Configuration.GetValue<string>("OrchestratorType");
-
-            if (orchestratorType?.ToUpper() == "K8S")
-            {
-                // Enable K8s telemetry initializer
-                services.AddApplicationInsightsKubernetesEnricher();
-            }
-            if (orchestratorType?.ToUpper() == "SF")
-            {
-                // Enable SF telemetry initializer
-                services.AddSingleton<ITelemetryInitializer>((serviceProvider) =>
-                    new FabricTelemetryInitializer());
-            }
         }
 
         private void RegisterEventBus(IServiceCollection services)
@@ -110,7 +75,7 @@ namespace Payment.API
                 var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
                 var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
 
-                return new EventBusServiceBus(serviceBusPersisterConnection, logger,
+                return new EventBusServiceBus(serviceBusPersisterConnection,
                     eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
             });
 
@@ -135,7 +100,7 @@ namespace Payment.API
             hcBuilder
                 .AddAzureServiceBusTopic(
                     configuration["EventBusConnection"],
-                    topicName: "REPLACE_TOPIC_NAME",
+                    topicName: "eshop_01",
                     name: "payment-servicebus-check",
                     tags: new string[] { "servicebus" });
 

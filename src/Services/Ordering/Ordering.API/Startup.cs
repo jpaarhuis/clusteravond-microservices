@@ -48,9 +48,7 @@
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddApplicationInsights(Configuration)
-                .AddCustomMvc()
-                .AddHealthChecks(Configuration)
+            services.AddCustomMvc()
                 .AddCustomDbContext(Configuration)
                 .AddCustomSwagger(Configuration)
                 .AddCustomIntegrations(Configuration)
@@ -83,17 +81,6 @@
             }
 
             app.UseCors("CorsPolicy");
-
-            app.UseHealthChecks("/liveness", new HealthCheckOptions
-            {
-                Predicate = r => r.Name.Contains("self")
-            });
-
-            app.UseHealthChecks("/hc", new HealthCheckOptions()
-            {
-                Predicate = _ => true,
-                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-            });
 
             ConfigureAuth(app);
 
@@ -136,26 +123,6 @@
 
     static class CustomExtensionsMethods
     {
-        public static IServiceCollection AddApplicationInsights(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddApplicationInsightsTelemetry(configuration);
-            var orchestratorType = configuration.GetValue<string>("OrchestratorType");
-
-            if (orchestratorType?.ToUpper() == "K8S")
-            {
-                // Enable K8s telemetry initializer
-                services.AddApplicationInsightsKubernetesEnricher();
-            }
-            if (orchestratorType?.ToUpper() == "SF")
-            {
-                // Enable SF telemetry initializer
-                services.AddSingleton<ITelemetryInitializer>((serviceProvider) =>
-                    new FabricTelemetryInitializer());
-            }
-
-            return services;
-        }
-
         public static IServiceCollection AddCustomMvc(this IServiceCollection services)
         {
             // Add framework services.
@@ -176,28 +143,6 @@
                     .AllowAnyHeader()
                     .AllowCredentials());
             });
-
-            return services;
-        }
-
-        public static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
-        {
-            var hcBuilder = services.AddHealthChecks();
-
-            hcBuilder.AddCheck("self", () => HealthCheckResult.Healthy());
-
-            hcBuilder
-                .AddSqlServer(
-                    configuration["ConnectionString"],
-                    name: "OrderingDB-check",
-                    tags: new string[] { "orderingdb" });
-
-            hcBuilder
-                .AddAzureServiceBusTopic(
-                    configuration["EventBusConnection"],
-                    topicName: "REPLACE_TOPIC_NAME",
-                    name: "ordering-servicebus-check",
-                    tags: new string[] { "servicebus" });
 
             return services;
         }
@@ -278,7 +223,7 @@
                 var serviceBusConnectionString = configuration["EventBusConnection"];
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString);
 
-                return new DefaultServiceBusPersisterConnection(serviceBusConnection, logger);
+                return new DefaultServiceBusPersisterConnection(serviceBusConnection);
             });
 
             return services;
@@ -320,8 +265,7 @@
                 var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
                 var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
 
-                return new EventBusServiceBus(serviceBusPersisterConnection, logger,
-                    eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
+                return new EventBusServiceBus(serviceBusPersisterConnection, eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);
             });
 
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();

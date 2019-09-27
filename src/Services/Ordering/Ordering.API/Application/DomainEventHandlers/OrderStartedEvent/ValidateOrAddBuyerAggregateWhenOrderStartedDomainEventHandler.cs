@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
 using Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.BuyerAggregate;
 using Microsoft.Extensions.Logging;
+using Ordering.API.Application.Commands;
 using Ordering.API.Application.IntegrationEvents;
 using Ordering.API.Application.IntegrationEvents.Events;
 using Ordering.Domain.Events;
@@ -58,12 +59,12 @@ namespace Ordering.API.Application.DomainEventHandlers.OrderStartedEvent
             await _buyerRepository.UnitOfWork
                 .SaveEntitiesAsync();
 
-            var orderStatusChangedTosubmittedIntegrationEvent = new OrderStatusChangedToSubmittedIntegrationEvent(orderStartedEvent.Order.Id, orderStartedEvent.Order.OrderStatus.Name, buyer.Name);
-            await _orderingIntegrationEventService.AddAndSaveEventAsync(orderStatusChangedTosubmittedIntegrationEvent);
+            var gracePeriodConfirmedIntegrationEvent = new GracePeriodConfirmedIntegrationEvent(orderStartedEvent.Order.Id);
+            await _orderingIntegrationEventService.AddAndSaveEventAsync(gracePeriodConfirmedIntegrationEvent);
+            //var orderStatusChangedTosubmittedIntegrationEvent = new OrderStatusChangedToSubmittedIntegrationEvent(orderStartedEvent.Order.Id, orderStartedEvent.Order.OrderStatus.Name, buyer.Name);
+            //await _orderingIntegrationEventService.AddAndSaveEventAsync(orderStatusChangedTosubmittedIntegrationEvent);
 
-            _logger.CreateLogger<ValidateOrAddBuyerAggregateWhenOrderStartedDomainEventHandler>()
-                .LogTrace("Buyer {BuyerId} and related payment method were validated or updated for orderId: {OrderId}.",
-                    buyerUpdated.Id, orderStartedEvent.Order.Id);
+
         }
     }
 }

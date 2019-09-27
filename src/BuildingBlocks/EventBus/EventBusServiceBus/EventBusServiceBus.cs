@@ -5,7 +5,6 @@
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus;
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
-    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -15,7 +14,6 @@
     public class EventBusServiceBus : IEventBus
     {
         private readonly IServiceBusPersisterConnection _serviceBusPersisterConnection;
-        private readonly ILogger<EventBusServiceBus> _logger;
         private readonly IEventBusSubscriptionsManager _subsManager;
         private readonly SubscriptionClient _subscriptionClient;
         private readonly ILifetimeScope _autofac;
@@ -23,11 +21,10 @@
         private const string INTEGRATION_EVENT_SUFIX = "IntegrationEvent";
 
         public EventBusServiceBus(IServiceBusPersisterConnection serviceBusPersisterConnection,
-            ILogger<EventBusServiceBus> logger, IEventBusSubscriptionsManager subsManager, string subscriptionClientName,
+            IEventBusSubscriptionsManager subsManager, string subscriptionClientName,
             ILifetimeScope autofac)
         {
             _serviceBusPersisterConnection = serviceBusPersisterConnection;
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
 
             _subscriptionClient = new SubscriptionClient(serviceBusPersisterConnection.ServiceBusConnectionStringBuilder,
@@ -61,8 +58,6 @@
         public void SubscribeDynamic<TH>(string eventName)
             where TH : IDynamicIntegrationEventHandler
         {
-            _logger.LogInformation("Subscribing to dynamic event {EventName} with {EventHandler}", eventName, nameof(TH));
-
             _subsManager.AddDynamicSubscription<TH>(eventName);
         }
 
@@ -85,12 +80,9 @@
                 }
                 catch (ServiceBusException)
                 {
-                    _logger.LogWarning("The messaging entity {eventName} already exists.", eventName);
+                    
                 }
             }
-
-            _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, nameof(TH));
-
             _subsManager.AddSubscription<T, TH>();
         }
 
@@ -109,10 +101,7 @@
             }
             catch (MessagingEntityNotFoundException)
             {
-                _logger.LogWarning("The messaging entity {eventName} Could not be found.", eventName);
             }
-
-            _logger.LogInformation("Unsubscribing from event {EventName}", eventName);
 
             _subsManager.RemoveSubscription<T, TH>();
         }
@@ -120,8 +109,6 @@
         public void UnsubscribeDynamic<TH>(string eventName)
             where TH : IDynamicIntegrationEventHandler
         {
-            _logger.LogInformation("Unsubscribing from dynamic event {EventName}", eventName);
-
             _subsManager.RemoveDynamicSubscription<TH>(eventName);
         }
 
@@ -149,11 +136,6 @@
 
         private Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
         {
-            var ex = exceptionReceivedEventArgs.Exception;
-            var context = exceptionReceivedEventArgs.ExceptionReceivedContext;
-
-            _logger.LogError(ex, "ERROR handling message: {ExceptionMessage} - Context: {@ExceptionContext}", ex.Message, context);
-
             return Task.CompletedTask;
         }
 
@@ -201,7 +183,7 @@
             }
             catch (MessagingEntityNotFoundException)
             {
-                _logger.LogWarning("The messaging entity {DefaultRuleName} Could not be found.", RuleDescription.DefaultRuleName);
+                
             }
         }
     }
