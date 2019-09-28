@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Basket.API.Infrastructure.Filters;
-using Basket.API.Infrastructure.Middlewares;
 using Basket.API.IntegrationEvents.EventHandling;
 using Basket.API.IntegrationEvents.Events;
 using HealthChecks.UI.Client;
@@ -73,32 +72,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
 
             RegisterEventBus(services);
 
-            services.AddSwaggerGen(options =>
-            {
-                options.DescribeAllEnumsAsStrings();
-                options.SwaggerDoc("v1", new Info
-                {
-                    Title = "Basket HTTP API",
-                    Version = "v1",
-                    Description = "The Basket Service HTTP API",
-                    TermsOfService = "Terms Of Service"
-                });
-
-                options.AddSecurityDefinition("oauth2", new OAuth2Scheme
-                {
-                    Type = "oauth2",
-                    Flow = "implicit",
-                    AuthorizationUrl = $"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/authorize",
-                    TokenUrl = $"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/token",
-                    Scopes = new Dictionary<string, string>()
-                    {
-                        { "basket", "Basket API" }
-                    }
-                });
-
-                options.OperationFilter<AuthorizeCheckOperationFilter>();
-            });
-
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy",
@@ -125,9 +98,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            //loggerFactory.AddAzureWebAppDiagnostics();
-            //loggerFactory.AddApplicationInsights(app.ApplicationServices, LogLevel.Trace);
-
             var pathBase = Configuration["PATH_BASE"];
             if (!string.IsNullOrEmpty(pathBase))
             {
@@ -137,17 +107,9 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             app.UseStaticFiles();
             app.UseCors("CorsPolicy");
 
-            ConfigureAuth(app);
+            app.UseAuthentication();
 
             app.UseMvcWithDefaultRoute();
-
-            app.UseSwagger()
-               .UseSwaggerUI(c =>
-               {
-                   c.SwaggerEndpoint($"{ (!string.IsNullOrEmpty(pathBase) ? pathBase : string.Empty) }/swagger/v1/swagger.json", "Basket.API V1");
-                   c.OAuthClientId("basketswaggerui");
-                   c.OAuthAppName("Basket Swagger UI");
-               });
 
             ConfigureEventBus(app);
 
@@ -171,16 +133,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
                 options.RequireHttpsMetadata = false;
                 options.Audience = "basket";
             });
-        }
-
-        protected virtual void ConfigureAuth(IApplicationBuilder app)
-        {
-            if (Configuration.GetValue<bool>("UseLoadTest"))
-            {
-                app.UseMiddleware<ByPassAuthMiddleware>();
-            }
-
-            app.UseAuthentication();
         }
 
         private void RegisterEventBus(IServiceCollection services)
