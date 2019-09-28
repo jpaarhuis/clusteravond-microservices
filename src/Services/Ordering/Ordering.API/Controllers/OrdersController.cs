@@ -23,18 +23,15 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers
         private readonly IMediator _mediator;
         private readonly IOrderQueries _orderQueries;
         private readonly IIdentityService _identityService;
-        private readonly ILogger<OrdersController> _logger;
 
         public OrdersController(
             IMediator mediator, 
             IOrderQueries orderQueries, 
-            IIdentityService identityService,
-            ILogger<OrdersController> logger)
+            IIdentityService identityService)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _orderQueries = orderQueries ?? throw new ArgumentNullException(nameof(orderQueries));
             _identityService = identityService ?? throw new ArgumentNullException(nameof(identityService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [Route("cancel")]
@@ -47,16 +44,7 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers
 
             if (Guid.TryParse(requestId, out Guid guid) && guid != Guid.Empty)
             {
-                var requestCancelOrder = new IdentifiedCommand<CancelOrderCommand, bool>(command, guid);
-
-                _logger.LogInformation(
-                    "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
-                    requestCancelOrder.GetGenericTypeName(),
-                    nameof(requestCancelOrder.Command.OrderNumber),
-                    requestCancelOrder.Command.OrderNumber,
-                    requestCancelOrder);
-
-                commandResult = await _mediator.Send(requestCancelOrder);
+                commandResult = await _mediator.Send(command);
             }
 
             if (!commandResult)
@@ -77,16 +65,7 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers
 
             if (Guid.TryParse(requestId, out Guid guid) && guid != Guid.Empty)
             {
-                var requestShipOrder = new IdentifiedCommand<ShipOrderCommand, bool>(command, guid);
-
-                _logger.LogInformation(
-                    "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
-                    requestShipOrder.GetGenericTypeName(),
-                    nameof(requestShipOrder.Command.OrderNumber),
-                    requestShipOrder.Command.OrderNumber,
-                    requestShipOrder);
-
-                commandResult = await _mediator.Send(requestShipOrder);
+                commandResult = await _mediator.Send(command);
             }
 
             if (!commandResult)
@@ -139,13 +118,6 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers
         [HttpPost]
         public async Task<ActionResult<OrderDraftDTO>> CreateOrderDraftFromBasketDataAsync([FromBody] CreateOrderDraftCommand createOrderDraftCommand)
         {
-            _logger.LogInformation(
-                "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
-                createOrderDraftCommand.GetGenericTypeName(),
-                nameof(createOrderDraftCommand.BuyerId),
-                createOrderDraftCommand.BuyerId,
-                createOrderDraftCommand);
-
             return await _mediator.Send(createOrderDraftCommand);
         }
     }

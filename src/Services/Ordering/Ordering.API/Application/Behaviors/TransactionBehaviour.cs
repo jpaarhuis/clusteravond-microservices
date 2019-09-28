@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Extensions;
 using Microsoft.eShopOnContainers.Services.Ordering.Infrastructure;
-using Microsoft.Extensions.Logging;
 using Ordering.API.Application.IntegrationEvents;
 using System;
 using System.Threading;
@@ -12,17 +11,14 @@ namespace Ordering.API.Application.Behaviors
 {
     public class TransactionBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     {
-        private readonly ILogger<TransactionBehaviour<TRequest, TResponse>> _logger;
         private readonly OrderingContext _dbContext;
         private readonly IOrderingIntegrationEventService _orderingIntegrationEventService;
 
         public TransactionBehaviour(OrderingContext dbContext,
-            IOrderingIntegrationEventService orderingIntegrationEventService,
-            ILogger<TransactionBehaviour<TRequest, TResponse>> logger)
+            IOrderingIntegrationEventService orderingIntegrationEventService)
         {
             _dbContext = dbContext ?? throw new ArgumentException(nameof(OrderingContext));
             _orderingIntegrationEventService = orderingIntegrationEventService ?? throw new ArgumentException(nameof(orderingIntegrationEventService));
-            _logger = logger ?? throw new ArgumentException(nameof(ILogger));
         }
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)

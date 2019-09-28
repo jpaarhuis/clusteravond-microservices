@@ -59,8 +59,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
 
             ConfigureAuthService(services);
 
-            services.AddCustomHealthCheck(Configuration);
-
             services.Configure<BasketSettings>(Configuration);
 
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
@@ -212,25 +210,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
 
             eventBus.Subscribe<ProductPriceChangedIntegrationEvent, ProductPriceChangedIntegrationEventHandler>();
             eventBus.Subscribe<OrderStartedIntegrationEvent, OrderStartedIntegrationEventHandler>();
-        }
-    }
-
-    public static class CustomExtensionMethods
-    {
-        public static IServiceCollection AddCustomHealthCheck(this IServiceCollection services, IConfiguration configuration)
-        {
-            var hcBuilder = services.AddHealthChecks();
-
-            hcBuilder.AddCheck("self", () => HealthCheckResult.Healthy());
-
-            hcBuilder
-                .AddAzureServiceBusTopic(
-                    configuration["EventBusConnection"],
-                    topicName: "eshop_01",
-                    name: "basket-servicebus-check",
-                    tags: new string[] { "servicebus" });
-
-            return services;
         }
     }
 }
