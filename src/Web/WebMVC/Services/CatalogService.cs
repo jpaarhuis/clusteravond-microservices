@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.eShopOnContainers.WebMVC.ViewModels;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -15,15 +14,13 @@ namespace Microsoft.eShopOnContainers.WebMVC.Services
     {
         private readonly IOptions<AppSettings> _settings;
         private readonly HttpClient _httpClient;
-        private readonly ILogger<CatalogService> _logger;
 
         private readonly string _remoteServiceBaseUrl;
 
-        public CatalogService(HttpClient httpClient, ILogger<CatalogService> logger, IOptions<AppSettings> settings)
+        public CatalogService(HttpClient httpClient, IOptions<AppSettings> settings)
         {
             _httpClient = httpClient;
             _settings = settings;
-            _logger = logger;
 
             _remoteServiceBaseUrl = $"{_settings.Value.CatalogUrl}/api/v1/catalog/";
         }

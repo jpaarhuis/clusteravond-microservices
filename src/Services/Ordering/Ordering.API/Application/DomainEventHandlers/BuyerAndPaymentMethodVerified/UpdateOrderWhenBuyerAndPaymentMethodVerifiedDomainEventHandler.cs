@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
-using Microsoft.Extensions.Logging;
 using Ordering.Domain.Events;
 using System;
 using System.Threading;
@@ -12,13 +11,11 @@ namespace Ordering.API.Application.DomainEventHandlers.BuyerAndPaymentMethodVeri
                    : INotificationHandler<BuyerAndPaymentMethodVerifiedDomainEvent>
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly ILoggerFactory _logger;
 
         public UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler(
-            IOrderRepository orderRepository, ILoggerFactory logger)
+            IOrderRepository orderRepository)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         // Domain Logic comment:
@@ -29,10 +26,6 @@ namespace Ordering.API.Application.DomainEventHandlers.BuyerAndPaymentMethodVeri
             var orderToUpdate = await _orderRepository.GetAsync(buyerPaymentMethodVerifiedEvent.OrderId);
             orderToUpdate.SetBuyerId(buyerPaymentMethodVerifiedEvent.Buyer.Id);
             orderToUpdate.SetPaymentId(buyerPaymentMethodVerifiedEvent.Payment.Id);
-
-            _logger.CreateLogger<UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler>()
-                .LogTrace("Order with Id: {OrderId} has been successfully updated with a payment method {PaymentMethod} ({Id})",
-                    buyerPaymentMethodVerifiedEvent.OrderId, nameof(buyerPaymentMethodVerifiedEvent.Payment), buyerPaymentMethodVerifiedEvent.Payment.Id);
         }
     }
 }

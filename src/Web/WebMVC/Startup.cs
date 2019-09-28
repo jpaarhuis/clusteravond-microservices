@@ -4,7 +4,6 @@ using Microsoft.ApplicationInsights.ServiceFabric;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +11,6 @@ using Microsoft.eShopOnContainers.WebMVC.Services;
 using Microsoft.eShopOnContainers.WebMVC.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
 using System;
@@ -38,12 +35,11 @@ namespace Microsoft.eShopOnContainers.WebMVC
         {
             services.AddCustomMvc(Configuration)
                     .AddHttpClientServices(Configuration)
-                    .AddHealthChecks(Configuration)
                     .AddCustomAuthentication(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
@@ -60,7 +56,6 @@ namespace Microsoft.eShopOnContainers.WebMVC
             var pathBase = Configuration["PATH_BASE"];
             if (!string.IsNullOrEmpty(pathBase))
             {
-                loggerFactory.CreateLogger<Startup>().LogDebug("Using PATH BASE '{PathBase}'", pathBase);
                 app.UsePathBase(pathBase);
             }
 
@@ -74,7 +69,7 @@ namespace Microsoft.eShopOnContainers.WebMVC
 
             app.UseAuthentication();
 
-            WebContextSeed.Seed(app, env, loggerFactory);
+            WebContextSeed.Seed(app, env);
 
             app.UseHttpsRedirection();
             app.UseMvc(routes =>
@@ -92,14 +87,6 @@ namespace Microsoft.eShopOnContainers.WebMVC
 
     static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddHealthChecks()
-                .AddCheck("self", () => HealthCheckResult.Healthy());
-
-            return services;
-        }
-
         public static IServiceCollection AddCustomMvc(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();
@@ -147,22 +134,6 @@ namespace Microsoft.eShopOnContainers.WebMVC
 
             //add custom application services
             services.AddTransient<IIdentityParser<ApplicationUser>, IdentityParser>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddHttpClientLogging(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddLogging(b =>
-            {
-                b.AddFilter((category, level) => true); // Spam the world with logs.
-
-                // Add console logger so we can see all the logging produced by the client by default.
-                b.AddConsole(c => c.IncludeScopes = true);
-
-                // Add console logger
-                b.AddDebug();
-            });
 
             return services;
         }

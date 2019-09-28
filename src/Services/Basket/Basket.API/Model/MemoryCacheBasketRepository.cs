@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +8,10 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Model
 {
     public class MemoryCacheBasketRepository : IBasketRepository
     {
-        private readonly ILogger<MemoryCacheBasketRepository> _logger;
         private readonly IMemoryCache _cache;
 
-        public MemoryCacheBasketRepository(ILoggerFactory loggerFactory, IMemoryCache memoryCache)
+        public MemoryCacheBasketRepository(IMemoryCache memoryCache)
         {
-            _logger = loggerFactory.CreateLogger<MemoryCacheBasketRepository>();
             _cache = memoryCache;
             if (_cache.Get(0) == null)
             {
@@ -64,13 +61,9 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Model
             if (!created)
             {
                 Cache.Add(basket.BuyerId, null);
-                //    _logger.LogInformation("Problem occur persisting the item.");
-                //   return null;
             }
 
             Cache[basket.BuyerId] = JsonConvert.SerializeObject(basket);
-
-            _logger.LogInformation("Basket item persisted succesfully.");
 
             return await GetBasketAsync(basket.BuyerId);
         }

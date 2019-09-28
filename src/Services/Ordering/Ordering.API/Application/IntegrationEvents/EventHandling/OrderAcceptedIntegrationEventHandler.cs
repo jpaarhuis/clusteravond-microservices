@@ -1,21 +1,16 @@
 ﻿using MediatR;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
-using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Extensions;
-using Microsoft.eShopOnContainers.Services.Ordering.API;
-using Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
-using Microsoft.Extensions.Logging;
-using Ordering.API.Application.Behaviors;
 using Ordering.API.Application.Commands;
 using Ordering.API.Application.IntegrationEvents.Events;
 using System.Threading.Tasks;
 
 namespace Ordering.API.Application.IntegrationEvents.EventHandling
 {
-    public class GracePeriodConfirmedIntegrationEventHandler : IIntegrationEventHandler<GracePeriodConfirmedIntegrationEvent>
+    public class OrderAcceptedIntegrationEventHandler : IIntegrationEventHandler<OrderAcceptedIntegrationEvent>
     {
         private readonly IMediator _mediator;
 
-        public GracePeriodConfirmedIntegrationEventHandler(IMediator mediator)
+        public OrderAcceptedIntegrationEventHandler(IMediator mediator)
         {
             _mediator = mediator;
         }
@@ -28,7 +23,7 @@ namespace Ordering.API.Application.IntegrationEvents.EventHandling
         /// <param name="event">       
         /// </param>
         /// <returns></returns>
-        public async Task Handle(GracePeriodConfirmedIntegrationEvent @event)
+        public async Task Handle(OrderAcceptedIntegrationEvent @event)
         {
             var command = new SetAwaitingValidationOrderStatusCommand(@event.OrderId);
 

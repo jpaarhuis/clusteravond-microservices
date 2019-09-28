@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.eShopOnContainers.Services.Identity.API.Models;
 using Microsoft.eShopOnContainers.Services.Identity.API.Models.AccountViewModels;
 using Microsoft.eShopOnContainers.Services.Identity.API.Services;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API.Controllers
 {
@@ -30,7 +29,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Controllers
         private readonly ILoginService<ApplicationUser> _loginService;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
-        private readonly ILogger<AccountController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public AccountController(
@@ -39,13 +37,11 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Controllers
             ILoginService<ApplicationUser> loginService,
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
-            ILogger<AccountController> logger,
             UserManager<ApplicationUser> userManager)
         {
             _loginService = loginService;
             _interaction = interaction;
             _clientStore = clientStore;
-            _logger = logger;
             _userManager = userManager;
         }
 
@@ -121,16 +117,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Controllers
 
         private async Task<LoginViewModel> BuildLoginViewModelAsync(string returnUrl, AuthorizationRequest context)
         {
-            var allowLocal = true;
-            if (context?.ClientId != null)
-            {
-                var client = await _clientStore.FindEnabledClientByIdAsync(context.ClientId);
-                if (client != null)
-                {
-                    allowLocal = client.EnableLocalLogin;
-                }
-            }
-
             return new LoginViewModel
             {
                 ReturnUrl = returnUrl,
@@ -208,7 +194,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "LOGOUT ERROR: {ExceptionMessage}", ex.Message);
                 }
             }
 

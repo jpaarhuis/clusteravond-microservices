@@ -24,8 +24,6 @@ using Microsoft.eShopOnContainers.Services.Basket.API.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -61,8 +59,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
 
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
             {
-                var logger = sp.GetRequiredService<ILogger<DefaultServiceBusPersisterConnection>>();
-
                 var serviceBusConnectionString = Configuration["EventBusConnection"];
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString);
 
@@ -95,7 +91,7 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             var pathBase = Configuration["PATH_BASE"];
             if (!string.IsNullOrEmpty(pathBase))
@@ -142,7 +138,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             {
                 var serviceBusPersisterConnection = sp.GetRequiredService<IServiceBusPersisterConnection>();
                 var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
                 var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
 
                 return new EventBusServiceBus(serviceBusPersisterConnection,

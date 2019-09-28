@@ -8,11 +8,8 @@
     using Infrastructure.AutofacModules;
     using Infrastructure.Filters;
     using Infrastructure.Services;
-    using Microsoft.ApplicationInsights.Extensibility;
-    using Microsoft.ApplicationInsights.ServiceFabric;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.ServiceBus;
     using Microsoft.EntityFrameworkCore;
@@ -21,16 +18,10 @@
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBusServiceBus;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
     using Ordering.Infrastructure;
     using System;
-    using System.Collections.Generic;
-    using System.Data.Common;
     using System.IdentityModel.Tokens.Jwt;
     using System.Reflection;
-    using HealthChecks.UI.Client;
-    using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-    using Microsoft.Extensions.Diagnostics.HealthChecks;
 
     public class Startup
     {
@@ -62,7 +53,7 @@
         }
 
 
-        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app)
         {
             //loggerFactory.AddAzureWebAppDiagnostics();
             //loggerFactory.AddApplicationInsights(app.ApplicationServices, LogLevel.Trace);
@@ -70,7 +61,6 @@
             var pathBase = Configuration["PATH_BASE"];
             if (!string.IsNullOrEmpty(pathBase))
             {
-                loggerFactory.CreateLogger<Startup>().LogDebug("Using PATH BASE '{pathBase}'", pathBase);
                 app.UsePathBase(pathBase);
             }
 
@@ -89,7 +79,7 @@
             var eventBus = app.ApplicationServices.GetRequiredService<BuildingBlocks.EventBus.Abstractions.IEventBus>();
 
             eventBus.Subscribe<UserCheckoutAcceptedIntegrationEvent, IIntegrationEventHandler<UserCheckoutAcceptedIntegrationEvent>>();
-            eventBus.Subscribe<GracePeriodConfirmedIntegrationEvent, IIntegrationEventHandler<GracePeriodConfirmedIntegrationEvent>>();
+            eventBus.Subscribe<OrderAcceptedIntegrationEvent, IIntegrationEventHandler<OrderAcceptedIntegrationEvent>>();
             eventBus.Subscribe<OrderStockConfirmedIntegrationEvent, IIntegrationEventHandler<OrderStockConfirmedIntegrationEvent>>();
             eventBus.Subscribe<OrderStockRejectedIntegrationEvent, IIntegrationEventHandler<OrderStockRejectedIntegrationEvent>>();
             eventBus.Subscribe<OrderPaymentFailedIntegrationEvent, IIntegrationEventHandler<OrderPaymentFailedIntegrationEvent>>();
@@ -145,12 +135,9 @@
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IIdentityService, IdentityService>();
-            services.AddTransient<IOrderingIntegrationEventService, OrderingIntegrationEventService>();
 
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
             {
-                var logger = sp.GetRequiredService<ILogger<DefaultServiceBusPersisterConnection>>();
-
                 var serviceBusConnectionString = configuration["EventBusConnection"];
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString);
 
@@ -193,7 +180,6 @@
             {
                 var serviceBusPersisterConnection = sp.GetRequiredService<IServiceBusPersisterConnection>();
                 var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
                 var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
 
                 return new EventBusServiceBus(serviceBusPersisterConnection, eventBusSubcriptionsManager, subscriptionClientName, iLifetimeScope);

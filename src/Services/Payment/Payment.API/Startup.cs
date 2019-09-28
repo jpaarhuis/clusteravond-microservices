@@ -1,7 +1,5 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.ServiceFabric;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.ServiceBus;
@@ -10,13 +8,9 @@ using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBusServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Payment.API.IntegrationEvents.EventHandling;
 using Payment.API.IntegrationEvents.Events;
 using System;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Payment.API
 {
@@ -32,13 +26,10 @@ namespace Payment.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddCustomHealthCheck(Configuration);
             services.Configure<PaymentSettings>(Configuration);
 
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
             {
-                var logger = sp.GetRequiredService<ILogger<DefaultServiceBusPersisterConnection>>();
-
                 var serviceBusConnectionString = Configuration["EventBusConnection"];
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString);
 
@@ -53,7 +44,7 @@ namespace Payment.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             var pathBase = Configuration["PATH_BASE"];
             if (!string.IsNullOrEmpty(pathBase))
@@ -72,7 +63,6 @@ namespace Payment.API
             {
                 var serviceBusPersisterConnection = sp.GetRequiredService<IServiceBusPersisterConnection>();
                 var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
                 var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
 
                 return new EventBusServiceBus(serviceBusPersisterConnection,
@@ -87,24 +77,6 @@ namespace Payment.API
         {
             var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
             eventBus.Subscribe<OrderStatusChangedToStockConfirmedIntegrationEvent, OrderStatusChangedToStockConfirmedIntegrationEventHandler>();
-        }
-    }
-
-    public static class CustomExtensionMethods
-    {
-        public static IServiceCollection AddCustomHealthCheck(this IServiceCollection services, IConfiguration configuration)
-        {
-            var hcBuilder = services.AddHealthChecks();
-
-            hcBuilder.AddCheck("self", () => HealthCheckResult.Healthy());
-            hcBuilder
-                .AddAzureServiceBusTopic(
-                    configuration["EventBusConnection"],
-                    topicName: "eshop_01",
-                    name: "payment-servicebus-check",
-                    tags: new string[] { "servicebus" });
-
-            return services;
         }
     }
 }

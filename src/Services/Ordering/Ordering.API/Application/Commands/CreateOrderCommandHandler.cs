@@ -4,6 +4,7 @@
     using global::Ordering.API.Application.IntegrationEvents;
     using global::Ordering.API.Application.IntegrationEvents.Events;
     using MediatR;
+    using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -13,22 +14,22 @@
         : IRequestHandler<CreateOrderCommand, bool>
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly IOrderingIntegrationEventService _orderingIntegrationEventService;
+        private readonly IEventBus _eventBus;
 
         // Using DI to inject infrastructure persistence Repositories
         public CreateOrderCommandHandler(
-            IOrderingIntegrationEventService orderingIntegrationEventService,
+            IEventBus eventBus,
             IOrderRepository orderRepository)
         {
             _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
-            _orderingIntegrationEventService = orderingIntegrationEventService ?? throw new ArgumentNullException(nameof(orderingIntegrationEventService));
+            _eventBus = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
         }
 
         public async Task<bool> Handle(CreateOrderCommand message, CancellationToken cancellationToken)
         {
             // Add Integration event to clean the basket
             var orderStartedIntegrationEvent = new OrderStartedIntegrationEvent(message.UserId);
-            await _orderingIntegrationEventService.PublishEventAsync(orderStartedIntegrationEvent);
+            _eventBus.Publish(orderStartedIntegrationEvent);
 
             // Add/Update the Buyer AggregateRoot
             // DDD patterns comment: Add child entities and value-objects through the Order Aggregate-Root

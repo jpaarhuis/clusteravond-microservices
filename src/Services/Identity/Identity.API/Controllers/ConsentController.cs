@@ -3,7 +3,6 @@ using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.eShopOnContainers.Services.Identity.API.Models.AccountViewModels;
-using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,19 +13,16 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Controllers
     /// </summary>
     public class ConsentController : Controller
     {
-        private readonly ILogger<ConsentController> _logger;
         private readonly IClientStore _clientStore;
         private readonly IResourceStore _resourceStore;
         private readonly IIdentityServerInteractionService _interaction;
 
         
         public ConsentController(
-            ILogger<ConsentController> logger,
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IResourceStore resourceStore)
         {
-            _logger = logger;
             _interaction = interaction;
             _clientStore = clientStore;
             _resourceStore = resourceStore;
@@ -119,19 +115,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Controllers
                     {
                         return new ConsentViewModel(model, returnUrl, request, client, resources);
                     }
-                    else
-                    {
-                        _logger.LogError("No scopes matching: {0}", request.ScopesRequested.Aggregate((x, y) => x + ", " + y));
-                    }
                 }
-                else
-                {
-                    _logger.LogError("Invalid client id: {0}", request.ClientId);
-                }
-            }
-            else
-            {
-                _logger.LogError("No consent request matching request: {0}", returnUrl);
             }
 
             return null;

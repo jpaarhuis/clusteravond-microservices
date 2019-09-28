@@ -19,7 +19,6 @@ using Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents.EventHa
 using Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Data.Common;
@@ -53,18 +52,12 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
 
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            //Configure logs
-
-            //loggerFactory.AddAzureWebAppDiagnostics();
-            //loggerFactory.AddApplicationInsights(app.ApplicationServices, LogLevel.Trace);
-
             var pathBase = Configuration["PATH_BASE"];
 
             if (!string.IsNullOrEmpty(pathBase))
             {
-                loggerFactory.CreateLogger<Startup>().LogDebug("Using PATH BASE '{pathBase}'", pathBase);
                 app.UsePathBase(pathBase);
             }
 
@@ -159,7 +152,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<CatalogSettings>>().Value;
-                var logger = sp.GetRequiredService<ILogger<DefaultServiceBusPersisterConnection>>();
 
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(settings.EventBusConnection);
 
@@ -177,7 +169,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
               {
                   var serviceBusPersisterConnection = sp.GetRequiredService<IServiceBusPersisterConnection>();
                   var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                  var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
                   var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
 
                   return new EventBusServiceBus(serviceBusPersisterConnection,
