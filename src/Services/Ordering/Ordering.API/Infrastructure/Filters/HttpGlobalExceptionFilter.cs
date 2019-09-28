@@ -6,26 +6,19 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.ActionResults;
-    using Microsoft.Extensions.Logging;
     using System.Net;
 
     public class HttpGlobalExceptionFilter : IExceptionFilter
     {
         private readonly IHostingEnvironment env;
-        private readonly ILogger<HttpGlobalExceptionFilter> logger;
 
-        public HttpGlobalExceptionFilter(IHostingEnvironment env, ILogger<HttpGlobalExceptionFilter> logger)
+        public HttpGlobalExceptionFilter(IHostingEnvironment env)
         {
             this.env = env;
-            this.logger = logger;
         }
 
         public void OnException(ExceptionContext context)
         {
-            logger.LogError(new EventId(context.Exception.HResult),
-                context.Exception,
-                context.Exception.Message);
-
             if (context.Exception.GetType() == typeof(OrderingDomainException))
             {
                 var problemDetails = new ValidationProblemDetails()

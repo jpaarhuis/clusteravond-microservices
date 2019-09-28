@@ -236,7 +236,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API.Controllers
                 await _catalogIntegrationEventService.SaveEventAndCatalogContextChangesAsync(priceChangedEvent);
 
                 // Publish through the Event Bus and mark the saved event as published
-                await _catalogIntegrationEventService.PublishThroughEventBusAsync(priceChangedEvent);
+                await _catalogIntegrationEventService.PublishEventAsync(priceChangedEvent);
             }
             else // Just save the updated product because the Product's Price hasn't changed.
             {

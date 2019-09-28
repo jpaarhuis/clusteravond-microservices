@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure;
 using Microsoft.eShopOnContainers.Services.Ordering.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -16,33 +15,13 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.API
         public static readonly string Namespace = typeof(Program).Namespace;
         public static readonly string AppName = Namespace.Substring(Namespace.LastIndexOf('.', Namespace.LastIndexOf('.') - 1) + 1);
 
-        public static int Main(string[] args)
+        public static void Main(string[] args)
         {
             var configuration = GetConfiguration();
 
-            try
-            {
-                var host = BuildWebHost(configuration, args);
+            var host = BuildWebHost(configuration, args);
 
-                host.MigrateDbContext<OrderingContext>((context, services) =>
-                {
-                    var env = services.GetService<IHostingEnvironment>();
-                    var settings = services.GetService<IOptions<OrderingSettings>>();
-                
-                    new OrderingContextSeed()
-                        .SeedAsync(context, env, settings)
-                        .Wait();
-                })
-                .MigrateDbContext<IntegrationEventLogContext>((_, __) => { });
-
-                host.Run();
-
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                return 1;
-            }
+            host.Run();
         }
 
         private static IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>

@@ -8,7 +8,6 @@
     using System.Linq;
     using global::Catalog.API.IntegrationEvents;
     using IntegrationEvents.Events;
-    using Microsoft.Extensions.Logging;
 
     public class OrderStatusChangedToAwaitingValidationIntegrationEventHandler :
         IIntegrationEventHandler<OrderStatusChangedToAwaitingValidationIntegrationEvent>
@@ -42,7 +41,7 @@
                 : new OrderStockConfirmedIntegrationEvent(@event.OrderId);
 
             await _catalogIntegrationEventService.SaveEventAndCatalogContextChangesAsync(confirmedIntegrationEvent);
-            await _catalogIntegrationEventService.PublishThroughEventBusAsync(confirmedIntegrationEvent);
+            await _catalogIntegrationEventService.PublishEventAsync(confirmedIntegrationEvent);
 
         }
     }

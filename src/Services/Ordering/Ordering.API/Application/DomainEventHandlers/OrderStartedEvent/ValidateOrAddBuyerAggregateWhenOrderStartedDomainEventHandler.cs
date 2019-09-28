@@ -60,7 +60,7 @@ namespace Ordering.API.Application.DomainEventHandlers.OrderStartedEvent
                 .SaveEntitiesAsync();
 
             var gracePeriodConfirmedIntegrationEvent = new GracePeriodConfirmedIntegrationEvent(orderStartedEvent.Order.Id);
-            await _orderingIntegrationEventService.AddAndSaveEventAsync(gracePeriodConfirmedIntegrationEvent);
+            await _orderingIntegrationEventService.PublishEventAsync(gracePeriodConfirmedIntegrationEvent);
             //var orderStatusChangedTosubmittedIntegrationEvent = new OrderStatusChangedToSubmittedIntegrationEvent(orderStartedEvent.Order.Id, orderStartedEvent.Order.OrderStatus.Name, buyer.Name);
             //await _orderingIntegrationEventService.AddAndSaveEventAsync(orderStatusChangedTosubmittedIntegrationEvent);
 

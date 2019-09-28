@@ -15,39 +15,13 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
         public static readonly string Namespace = typeof(Program).Namespace;
         public static readonly string AppName = Namespace.Substring(Namespace.LastIndexOf('.', Namespace.LastIndexOf('.') - 1) + 1);
 
-        public static int Main(string[] args)
+        public static void Main(string[] args)
         {
             var configuration = GetConfiguration();
 
-            try
-            {
-                var host = BuildWebHost(configuration, args);
+            var host = BuildWebHost(configuration, args);
 
-                host.MigrateDbContext<PersistedGrantDbContext>((_, __) => { })
-                    .MigrateDbContext<ApplicationDbContext>((context, services) =>
-                    {
-                        var env = services.GetService<IHostingEnvironment>();
-                        var settings = services.GetService<IOptions<AppSettings>>();
-
-                        new ApplicationDbContextSeed()
-                            .SeedAsync(context, env, settings)
-                            .Wait();
-                    })
-                    .MigrateDbContext<ConfigurationDbContext>((context, services) =>
-                    {
-                        new ConfigurationDbContextSeed()
-                            .SeedAsync(context, configuration)
-                            .Wait();
-                    });
-
-                host.Run();
-
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                return 1;
-            }
+            host.Run();
         }
 
         private static IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>
@@ -58,6 +32,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseConfiguration(configuration)
                 .Build();
+
         private static IConfiguration GetConfiguration()
         {
             var builder = new ConfigurationBuilder()
@@ -66,14 +41,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                 .AddEnvironmentVariables();
 
             var config = builder.Build();
-
-            if (config.GetValue<bool>("UseVault", false))
-            {
-                builder.AddAzureKeyVault(
-                    $"https://{config["Vault:Name"]}.vault.azure.net/",
-                    config["Vault:ClientId"],
-                    config["Vault:ClientSecret"]);
-            }
 
             return builder.Build();
         }
