@@ -83,6 +83,21 @@ namespace Microsoft.eShopOnContainers.WebMVC.Controllers
             return RedirectToAction("Index", "Catalog", new { errorMsg = ViewBag.BasketInoperativeMsg });
         }
 
+        public async Task<IActionResult> RemoveFromCart(BasketItem basketItem)
+        {
+            try
+            {
+                // TODO: remove the basket item from the basket (take a look at the AddToCart method)
+            }
+            catch (BrokenCircuitException)
+            {
+                // Catch error when Basket.api is in circuit-opened mode                 
+                HandleBrokenCircuitException();
+            }
+
+            return RedirectToAction("Index");
+        }
+
         private void HandleBrokenCircuitException()
         {
             ViewBag.BasketInoperativeMsg = "Basket Service is inoperative, please try later on. (Business Msg Due to Circuit-Breaker)";
