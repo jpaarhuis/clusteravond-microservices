@@ -26,34 +26,20 @@ namespace Ordering.API.Application.DomainEventHandlers.OrderStartedEvent
 
         public async Task Handle(OrderStartedDomainEvent orderStartedEvent, CancellationToken cancellationToken)
         {            
-            var cardTypeId = (orderStartedEvent.CardTypeId != 0) ? orderStartedEvent.CardTypeId : 1;
-            var buyer = await _buyerRepository.FindAsync(orderStartedEvent.UserId);
-            bool buyerOriginallyExisted = (buyer == null) ? false : true;
+            var cardTypeId = (orderStartedEvent.CardTypeId != 0) ? orderStartedEvent.CardTypeId : 1; // we'll give you this one
 
-            if (!buyerOriginallyExisted)
-            {                
-                buyer = new Buyer(orderStartedEvent.UserId, orderStartedEvent.UserName);
-            }
+            // TODO: check if buyer exists based on userId using _buyerRepository
+            // TODO: if buyer exists use that buyer, otherwise create new Buyer object with user id and user name
 
-            buyer.VerifyOrAddPaymentMethod(cardTypeId,
-                                           $"Payment Method on {DateTime.UtcNow}",
-                                           orderStartedEvent.CardNumber,
-                                           orderStartedEvent.CardSecurityNumber,
-                                           orderStartedEvent.CardHolderName,
-                                           orderStartedEvent.CardExpiration,
-                                           orderStartedEvent.Order.Id);
+            // TODO: Verify payment method using VerifyOrAddPaymentMethod on Buyer object and using event parameters
 
-            var buyerUpdated = buyerOriginallyExisted ? 
-                _buyerRepository.Update(buyer) : 
-                _buyerRepository.Add(buyer);
-
+            // TODO: using _buyerRepository, if user did exist "update", otherwise "add" the user.
+            
             await _buyerRepository.UnitOfWork
                 .SaveEntitiesAsync();
 
-            var orderAcceptedIntegrationEvent = new OrderAcceptedIntegrationEvent(orderStartedEvent.Order.Id);
-            _eventBus.Publish(orderAcceptedIntegrationEvent);
-
-
+            // TODO: Publish new Order Accepted Integration Event
+            
         }
     }
 }

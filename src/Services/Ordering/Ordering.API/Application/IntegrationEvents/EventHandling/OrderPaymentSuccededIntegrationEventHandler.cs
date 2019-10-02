@@ -19,9 +19,7 @@
 
         public async Task Handle(OrderPaymentSuccededIntegrationEvent @event)
         {
-            var command = new SetPaidOrderStatusCommand(@event.OrderId);
-
-            await _mediator.Send(command);
+            // TODO: Send corresponding command
         }
     }
 }

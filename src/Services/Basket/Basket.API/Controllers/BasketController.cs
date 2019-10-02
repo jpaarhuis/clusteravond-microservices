@@ -66,28 +66,8 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.Controllers
 
             var userName = User.FindFirst(x => x.Type == "unique_name").Value;
 
-            var eventMessage = new UserCheckoutAcceptedIntegrationEvent(
-                userId, 
-                userName, 
-                basketCheckout.City, 
-                basketCheckout.Street,
-                basketCheckout.State, 
-                basketCheckout.Country, 
-                basketCheckout.ZipCode, 
-                basketCheckout.CardNumber, 
-                basketCheckout.CardHolderName,
-                basketCheckout.CardExpiration, 
-                basketCheckout.CardSecurityNumber, 
-                basketCheckout.CardTypeId, 
-                basketCheckout.Buyer, 
-                basketCheckout.RequestId, 
-                basket);
-
-            // Once basket is checkout, sends an integration event to
-            // ordering.api to convert basket to order and proceeds with
-            // order creation process
-            _eventBus.Publish(eventMessage);
-
+            // TODO: Basket is checkout, send and integration event to ordering.api using _eventbus
+            
             return Accepted();
         }
 

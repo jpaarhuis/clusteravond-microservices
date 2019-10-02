@@ -25,9 +25,7 @@ namespace Ordering.API.Application.IntegrationEvents.EventHandling
         /// <returns></returns>
         public async Task Handle(OrderAcceptedIntegrationEvent @event)
         {
-            var command = new SetAwaitingValidationOrderStatusCommand(@event.OrderId);
-
-            await _mediator.Send(command);
+            // TODO: Send a Set Awaiting Validation Order Status Command
         }
     }
 }

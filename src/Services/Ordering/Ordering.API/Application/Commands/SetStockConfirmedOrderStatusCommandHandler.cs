@@ -26,13 +26,8 @@ namespace Ordering.API.Application.Commands
             // Simulate a work time for confirming the stock
             await Task.Delay(10000);
 
-            var orderToUpdate = await _orderRepository.GetAsync(command.OrderNumber);
-            if(orderToUpdate == null)
-            {
-                return false;
-            }
-
-            orderToUpdate.SetStockConfirmedStatus();
+            // TODO: get order and set the Stock Confirmed Status on the Order object.
+            
             return await _orderRepository.UnitOfWork.SaveEntitiesAsync();
         }
     }

@@ -35,12 +35,8 @@
 
             var buyer = await _buyerRepository.FindByIdAsync(order.GetBuyerId.Value.ToString());
 
-            var orderStockList = orderStatusChangedToAwaitingValidationDomainEvent.OrderItems
-                .Select(orderItem => new OrderStockItem(orderItem.ProductId, orderItem.GetUnits()));
-
-            var orderStatusChangedToAwaitingValidationIntegrationEvent = new OrderStatusChangedToAwaitingValidationIntegrationEvent(
-                order.Id, order.OrderStatus.Name, buyer.Name, orderStockList);
-            _eventBus.Publish(orderStatusChangedToAwaitingValidationIntegrationEvent);
+            // TODO: Create list of OrderStockItems based on orderStatusChangedToAwaitingValidationDomainEvent.OrderItems using OrderItem.ProductId and OrderItem.GetUnits()
+            // TODO: Publish new Order Status Changed To Awaiting Validation Integration Event
         }
     }  
 }

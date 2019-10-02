@@ -26,13 +26,8 @@ namespace Ordering.API.Application.Commands
             // Simulate a work time for validating the payment
             await Task.Delay(10000);
 
-            var orderToUpdate = await _orderRepository.GetAsync(command.OrderNumber);
-            if(orderToUpdate == null)
-            {
-                return false;
-            }
+            // TODO: get order and Set Paid Status on Order object
 
-            orderToUpdate.SetPaidStatus();
             return await _orderRepository.UnitOfWork.SaveEntitiesAsync();
         }
     }

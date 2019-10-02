@@ -39,13 +39,7 @@
             var orderStockList = orderStatusChangedToPaidDomainEvent.OrderItems
                 .Select(orderItem => new OrderStockItem(orderItem.ProductId, orderItem.GetUnits()));
 
-            var orderStatusChangedToPaidIntegrationEvent = new OrderStatusChangedToPaidIntegrationEvent(
-                orderStatusChangedToPaidDomainEvent.OrderId,
-                order.OrderStatus.Name,
-                buyer.Name,
-                orderStockList);
-
-            _eventBus.Publish(orderStatusChangedToPaidIntegrationEvent);         
+            // TODO: Publish new Order Status Changed To Paid Integration Event     
         }
     }  
 }

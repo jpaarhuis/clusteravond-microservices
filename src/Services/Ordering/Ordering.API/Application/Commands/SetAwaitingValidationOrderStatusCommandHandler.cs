@@ -23,13 +23,10 @@ namespace Ordering.API.Application.Commands
         /// <returns></returns>
         public async Task<bool> Handle(SetAwaitingValidationOrderStatusCommand command, CancellationToken cancellationToken)
         {
-            var orderToUpdate = await _orderRepository.GetAsync(command.OrderNumber);
-            if(orderToUpdate == null)
-            {
-                return false;
-            }
+            // TODO: try to get order from _orderRepository, if it doesn't exist, return false;
+            
+            // TODO: Set Awaiting Valdiation Status on the order object
 
-            orderToUpdate.SetAwaitingValidationStatus();
             return await _orderRepository.UnitOfWork.SaveEntitiesAsync();
         }
     }
