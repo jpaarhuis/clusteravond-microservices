@@ -14,13 +14,16 @@
     {
         private readonly CatalogContext _catalogContext;
         private readonly ICatalogIntegrationEventService _catalogIntegrationEventService;
+        private readonly IEventBus _eventBus;
 
         public OrderStatusChangedToAwaitingValidationIntegrationEventHandler(
             CatalogContext catalogContext,
-            ICatalogIntegrationEventService catalogIntegrationEventService)
+            ICatalogIntegrationEventService catalogIntegrationEventService,
+            IEventBus eventBus)
         {
             _catalogContext = catalogContext;
             _catalogIntegrationEventService = catalogIntegrationEventService;
+            _eventBus = eventBus;
         }
 
         public async Task Handle(OrderStatusChangedToAwaitingValidationIntegrationEvent @event)
@@ -30,19 +33,13 @@
             foreach (var orderStockItem in @event.OrderStockItems)
             {
                 var catalogItem = _catalogContext.CatalogItems.Find(orderStockItem.ProductId);
-                var hasStock = catalogItem.AvailableStock >= orderStockItem.Units;
-                var confirmedOrderStockItem = new ConfirmedOrderStockItem(catalogItem.Id, hasStock);
 
-                confirmedOrderStockItems.Add(confirmedOrderStockItem);
+                // TODO: Fill confirmedOrderStockItems with items that have available stock using catalogItem.AvailableStock and orderStockItem.Units
             }
 
-            var confirmedIntegrationEvent = confirmedOrderStockItems.Any(c => !c.HasStock)
-                ? (IntegrationEvent)new OrderStockRejectedIntegrationEvent(@event.OrderId, confirmedOrderStockItems)
-                : new OrderStockConfirmedIntegrationEvent(@event.OrderId);
-
-            await _catalogIntegrationEventService.SaveEventAndCatalogContextChangesAsync(confirmedIntegrationEvent);
-            await _catalogIntegrationEventService.PublishEventAsync(confirmedIntegrationEvent);
-
+            // TODO: If confirmedOrderStockItems contains an item w/o stock then use a corresponding Integration Event
+            // TODO: If all confirmedOrderStockItems have stock then use a corresponding Integration Event
+            // TODO: publish that integration event 
         }
     }
 }

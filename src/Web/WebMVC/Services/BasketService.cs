@@ -132,5 +132,23 @@ namespace Microsoft.eShopOnContainers.WebMVC.Services
             // Step 4: Update basket
             await UpdateBasket(currentBasket);
         }
+
+        public async Task RemoveItemFromBasket(ApplicationUser user, string itemId)
+        {
+            // Step 1: Get current basket
+            var currentBasket = await getBasketAsync(user.Id);
+
+            // Step 2: Get correct item from the basket
+            var item = currentBasket.Items.Where(x => x.Id == itemId).FirstOrDefault();
+
+            // Step 3: If item exists, remove it from the basket
+            if (item != null)
+            {
+                currentBasket.Items.Remove(item);
+
+                // Step 4: Update basket
+                await UpdateBasket(currentBasket);
+            }
+        }
     }
 }

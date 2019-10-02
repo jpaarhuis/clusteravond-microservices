@@ -18,14 +18,8 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API.IntegrationEvents.Even
 
         public async Task Handle(ProductPriceChangedIntegrationEvent @event)
         {
-            var userIds = _repository.GetUsers();
-
-            foreach (var id in userIds)
-            {
-                var basket = await _repository.GetBasketAsync(id);
-
-                await UpdatePriceInBasketItems(@event.ProductId, @event.NewPrice, @event.OldPrice, basket);
-            }
+            // TODO: Iterate all baskets using _repository and update price in
+            // basket with UpdatePriceInBasketItems() using event properties
         }
 
         private async Task UpdatePriceInBasketItems(int productId, decimal newPrice, decimal oldPrice, CustomerBasket basket)

@@ -23,8 +23,7 @@
 
         public async Task Handle(OrderStockConfirmedIntegrationEvent @event)
         {
-            var command = new SetStockConfirmedOrderStatusCommand(@event.OrderId);
-            await _mediator.Send(command);
+            // TODO: Send corresponding command
         }
     }
 }

@@ -18,13 +18,7 @@
 
         public async Task Handle(OrderStatusChangedToPaidIntegrationEvent @event)
         {
-            //we're not blocking stock/inventory
-            foreach (var orderStockItem in @event.OrderStockItems)
-            {
-                var catalogItem = _catalogContext.CatalogItems.Find(orderStockItem.ProductId);
-
-                catalogItem.RemoveStock(orderStockItem.Units);
-            }
+            // TODO: Remove Stock from the catalog using @event.OrderStockItems and _catalogContext.CatalogItems
 
             await _catalogContext.SaveChangesAsync();
         }

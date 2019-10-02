@@ -29,12 +29,7 @@ namespace Ordering.API.Application.IntegrationEvents.EventHandling
         {
             if (@event.RequestId != Guid.Empty)
             {
-                var createOrderCommand = new CreateOrderCommand(@event.Basket.Items, @event.UserId, @event.UserName, @event.City, @event.Street,
-                        @event.State, @event.Country, @event.ZipCode,
-                        @event.CardNumber, @event.CardHolderName, @event.CardExpiration,
-                        @event.CardSecurityNumber, @event.CardTypeId);
-
-                await _mediator.Send(createOrderCommand);
+                // TODO: Create CreateOrderCommand and send it using _mediator to fire the CreateOrderCommandHandler
             }
         }
     }

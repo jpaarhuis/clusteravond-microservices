@@ -179,11 +179,7 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.O
         private void AddOrderStartedDomainEvent(string userId, string userName, int cardTypeId, string cardNumber,
                 string cardSecurityNumber, string cardHolderName, DateTime cardExpiration)
         {
-            var orderStartedDomainEvent = new OrderStartedDomainEvent(this, userId, userName, cardTypeId,
-                                                                      cardNumber, cardSecurityNumber,
-                                                                      cardHolderName, cardExpiration);
-
-            this.AddDomainEvent(orderStartedDomainEvent);
+            // TODO: Add Order Started Domain Event and add it using this.AddDomainEvent
         }
 
         private void StatusChangeException(OrderStatus orderStatusToChange)

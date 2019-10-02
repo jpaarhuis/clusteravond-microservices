@@ -18,7 +18,7 @@ namespace Basket.API.IntegrationEvents.EventHandling
 
         public async Task Handle(OrderStartedIntegrationEvent @event)
         {
-            await _repository.DeleteBasketAsync(@event.UserId.ToString());
+            //TODO: Clean up basket
         }
     }
 }

@@ -32,8 +32,7 @@
             var order = await _orderRepository.GetAsync(orderStatusChangedToStockConfirmedDomainEvent.OrderId);
             var buyer = await _buyerRepository.FindByIdAsync(order.GetBuyerId.Value.ToString());
 
-            var orderStatusChangedToStockConfirmedIntegrationEvent = new OrderStatusChangedToStockConfirmedIntegrationEvent(order.Id, order.OrderStatus.Name, buyer.Name);
-            _eventBus.Publish(orderStatusChangedToStockConfirmedIntegrationEvent);            
+            // TODO: Publish new Order Status Changed To Stock Confirmed Integration Event    
         }
     }  
 }
