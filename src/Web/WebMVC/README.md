@@ -54,8 +54,10 @@ Fix the checkout process so that an order is correctly processed and eventually 
 Reference model:
 ![Assignment reference model](https://i.imgur.com/CwU1ESH.png)
 
-# Assignment 4
+# Assignment Bonus
+For this assignement, check out the opdracht-bonus branch.
+
 Implement Event Sourcing for the Basket using a custom implementation of the IBasketRepository and using Event Store.
 
-- Event Store server: https://eventstore.org/downloads/win/EventStore-OSS-Win-v5.0.2.zip
+- Run Event Store server locally: https://eventstore.org/downloads/win/EventStore-OSS-Win-v5.0.2.zip
 - Quick-start Event Store https://eventstore.org/docs/dotnet-api/index.html
