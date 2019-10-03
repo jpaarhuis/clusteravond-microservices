@@ -1,1 +1,1 @@
-Find instructions and assignments [here](./src/Web%20Apps/WebMVC/README.md)
+Find instructions and assignments [here](./src/Web/WebMVC/README.md)
