@@ -79,7 +79,8 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IMemoryCache>(new MemoryCache(new MemoryCacheOptions()));
-            services.AddTransient<IBasketRepository, MemoryCacheBasketRepository>();
+            //services.AddTransient<IBasketRepository, MemoryCacheBasketRepository>();
+            services.AddTransient<IBasketRepository, EventStoreBasketRepository>();
             services.AddTransient<IIdentityService, IdentityService>();
 
             services.AddOptions();
