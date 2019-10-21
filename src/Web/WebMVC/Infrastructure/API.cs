@@ -2,20 +2,22 @@
 {
     public static class API
     {
-        //public static class Purchase
-        //{
-        //    public static string AddItemToBasket(string baseUri) => $"{baseUri}/basket/items";
-        //    public static string UpdateBasketItem(string baseUri) => $"{baseUri}/basket/items";
-        //    public static string GetOrderDraft(string baseUri, string basketId) => $"{baseUri}/order/draft/{basketId}";
-        //}
 
-        //public static class Basket
-        //{
-        //    public static string GetBasket(string baseUri, string basketId) => $"{baseUri}/{basketId}";
-        //    public static string UpdateBasket(string baseUri) => baseUri;
-        //    public static string CheckoutBasket(string baseUri) => $"{baseUri}/checkout";
-        //    public static string CleanBasket(string baseUri, string basketId) => $"{baseUri}/{basketId}";
-        //}
+        public static class Purchase
+        {
+            public static string AddItemToBasket(string baseUri) => $"{baseUri}/basket/items";
+            public static string UpdateBasketItem(string baseUri) => $"{baseUri}/basket/items";
+
+            public static string GetOrderDraft(string baseUri, string basketId) => $"{baseUri}/order/draft/{basketId}";
+        }
+
+        public static class Basket
+        {
+            public static string GetBasket(string baseUri, string basketId) => $"{baseUri}/{basketId}";
+            public static string UpdateBasket(string baseUri) => baseUri;
+            public static string CheckoutBasket(string baseUri) => $"{baseUri}/checkout";
+            public static string CleanBasket(string baseUri, string basketId) => $"{baseUri}/{basketId}";
+        }
 
         public static class Order
         {
@@ -78,6 +80,27 @@
             public static string GetAllTypes(string baseUri)
             {
                 return $"{baseUri}catalogTypes";
+            }
+        }
+
+        public static class Marketing
+        {
+            public static string GetAllCampaigns(string baseUri, int take, int page)
+            {
+                return $"{baseUri}user?pageSize={take}&pageIndex={page}";
+            }
+
+            public static string GetAllCampaignById(string baseUri, int id)
+            {
+                return $"{baseUri}{id}";
+            }
+        }
+
+        public static class Locations
+        {
+            public static string CreateOrUpdateUserLocation(string baseUri)
+            {
+                return baseUri;
             }
         }
     }

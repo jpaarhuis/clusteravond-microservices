@@ -22,7 +22,7 @@ namespace Microsoft.eShopOnContainers.WebMVC.Services
             _httpClient = httpClient;
             _settings = settings;
 
-            _remoteServiceBaseUrl = $"{_settings.Value.CatalogUrl}/api/v1/catalog/";
+            _remoteServiceBaseUrl = $"{_settings.Value.PurchaseUrl}/api/v1/c/catalog/";
         }
 
         public async Task<Catalog> GetCatalogItems(int page, int take, int? brand, int? type)

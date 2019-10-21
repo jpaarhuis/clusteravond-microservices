@@ -32,7 +32,7 @@ namespace WebMVC.Infrastructure
         static void GetPreconfiguredCSS(string contentRootPath, string webroot)
         {
             try
-            { 
+            {
                 string overrideCssFile = Path.Combine(contentRootPath, "Setup", "override.css");
                 if (!File.Exists(overrideCssFile))
                 {
@@ -40,7 +40,7 @@ namespace WebMVC.Infrastructure
                 }
 
                 string destinationFilename = Path.Combine(webroot, "css", "override.css");
-                File.Copy(overrideCssFile, destinationFilename, true );
+                File.Copy(overrideCssFile, destinationFilename, true);
             }
             catch (Exception ex)
             {
@@ -76,7 +76,7 @@ namespace WebMVC.Infrastructure
                     }
                 }
             }
-            catch ( Exception ex )
+            catch (Exception ex)
             {
             }
         }

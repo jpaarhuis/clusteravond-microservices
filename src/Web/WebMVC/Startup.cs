@@ -1,7 +1,4 @@
-﻿using HealthChecks.UI.Client;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.ServiceFabric;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -117,21 +114,18 @@ namespace Microsoft.eShopOnContainers.WebMVC
                    .SetHandlerLifetime(TimeSpan.FromMinutes(5))  //Sample. Default lifetime is 2 minutes
                    .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
                    .AddPolicyHandler(GetRetryPolicy())
-                   .AddPolicyHandler(GetCircuitBreakerPolicy())
-                   ;
+                   .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             services.AddHttpClient<ICatalogService, CatalogService>()
                    .AddPolicyHandler(GetRetryPolicy())
-                   .AddPolicyHandler(GetCircuitBreakerPolicy())
-                   ;
+                   .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             services.AddHttpClient<IOrderingService, OrderingService>()
                  .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
                  .AddHttpMessageHandler<HttpClientRequestIdDelegatingHandler>()
                  .AddPolicyHandler(GetRetryPolicy())
-                 .AddPolicyHandler(GetCircuitBreakerPolicy())
-                 ;
-
+                 .AddPolicyHandler(GetCircuitBreakerPolicy());
+            
             //add custom application services
             services.AddTransient<IIdentityParser<ApplicationUser>, IdentityParser>();
 
@@ -152,7 +146,7 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
-            .AddCookie(setup => setup.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime))
+            .AddCookie(setup=>setup.ExpireTimeSpan = TimeSpan.FromMinutes(sessionCookieLifetime))
             .AddOpenIdConnect(options =>
             {
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -168,36 +162,35 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 options.Scope.Add("profile");
                 options.Scope.Add("orders");
                 options.Scope.Add("basket");
+                options.Scope.Add("webshoppingagg");
+                var authenticationProviderKey = "IdentityApiKey";
+                services.AddAuthentication()
+                    .AddJwtBearer(authenticationProviderKey, x =>
+                    {
+                        x.Authority = identityUrl;
+                        x.RequireHttpsMetadata = false;
+                        x.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+                        {
+                            ValidAudiences = new[] { "orders", "basket", "webshoppingagg" }
+                        };
+                        x.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents()
+                        {
+                            OnAuthenticationFailed = async ctx =>
+                            {
+                                int i = 0;
+                            },
+                            OnTokenValidated = async ctx =>
+                            {
+                                int i = 0;
+                            },
+
+                            OnMessageReceived = async ctx =>
+                            {
+                                int i = 0;
+                            }
+                        };
+                    });
             });
-
-            var authenticationProviderKey = "IdentityApiKey";
-            services.AddAuthentication()
-                .AddJwtBearer(authenticationProviderKey, x =>
-                {
-                    x.Authority = identityUrl;
-                    x.RequireHttpsMetadata = false;
-                    x.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
-                    {
-                        ValidAudiences = new[] { "orders", "basket" }
-                    };
-                    x.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents()
-                    {
-                        OnAuthenticationFailed = async ctx =>
-                        {
-                            int i = 0;
-                        },
-                        OnTokenValidated = async ctx =>
-                        {
-                            int i = 0;
-                        },
-
-                        OnMessageReceived = async ctx =>
-                        {
-                            int i = 0;
-                        }
-                    };
-                });
-
 
             return services;
         }
@@ -216,7 +209,5 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 .HandleTransientHttpError()
                 .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
         }
-
-
     }
 }
