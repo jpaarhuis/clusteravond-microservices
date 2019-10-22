@@ -12,7 +12,8 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Configuration
             return new List<ApiResource>
             {
                 new ApiResource("orders", "Orders Service"),
-                new ApiResource("basket", "Basket Service")
+                new ApiResource("basket", "Basket Service"),
+                new ApiResource("webshoppingagg", "Web Shopping Aggregator")
             };
         }
 
@@ -60,7 +61,8 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Configuration
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.OfflineAccess,
                         "orders",
-                        "basket"
+                        "basket",
+                        "webshoppingagg"
                     },
                     AccessTokenLifetime = 60*60*2, // 2 hours
                     IdentityTokenLifetime= 60*60*2 // 2 hours
