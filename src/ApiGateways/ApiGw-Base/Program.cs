@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
+using System.Reflection;
 
 namespace OcelotApiGw
 {
@@ -15,8 +17,11 @@ namespace OcelotApiGw
         public static IWebHost BuildWebHost(string[] args)
         {
             IWebHostBuilder builder = WebHost.CreateDefaultBuilder(args);
+
+            var configFile = Path.Combine(Assembly.GetEntryAssembly().Location, @"..\..\..\..\..\Web.Bff.Shopping\apigw\configuration.json");
+            
             builder.ConfigureServices(s => s.AddSingleton(builder))
-                .ConfigureAppConfiguration(ic => ic.AddJsonFile(@"C:\git\clusteravond-microservices\src\ApiGateways\Web.Bff.Shopping\apigw\configuration.json"))
+                .ConfigureAppConfiguration(ic => ic.AddJsonFile(configFile))
                 .UseStartup<Startup>()
                 ;
             IWebHost host = builder.Build();
