@@ -33,6 +33,30 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Configuration
         {
             return new List<Client>
             {
+                // JavaScript Client
+                new Client
+                {
+                    ClientId = "js",
+                    ClientName = "eShop SPA OpenId Client",
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AllowAccessTokensViaBrowser = true,
+                    RedirectUris =           { $"{clientsUrl["Spa"]}/" },
+                    RequireConsent = false,
+                    PostLogoutRedirectUris = { $"{clientsUrl["Spa"]}/" },
+                    AllowedCorsOrigins =     { $"{clientsUrl["Spa"]}" },
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        "orders",
+                        "basket",
+                        "locations",
+                        "marketing",
+                        "webshoppingagg",
+                        "orders.signalrhub",
+                        "webhooks"
+                    },
+                },
                 new Client
                 {
                     ClientId = "mvc",
