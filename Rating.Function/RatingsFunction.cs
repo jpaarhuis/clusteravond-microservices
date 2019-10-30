@@ -49,29 +49,27 @@ namespace Rating.Function
             return new OkObjectResult(result);
         }
 
-        [FunctionName("rating")]
-        public async Task<IActionResult> Rating(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-        ILogger log)
-        {
-            log.LogInformation("Rating function processed a post.");
+        //// ASSIGNMENT 5 UNCOMMENT
+        //[FunctionName("rating")]
+        //public async Task<IActionResult> Rating(
+        //[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
+        //ILogger log)
+        //{
+        //    log.LogInformation("Rating function processed a post.");
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var rating = JsonConvert.DeserializeObject<Rating>(requestBody);
-            if (rating.ItemId == null)
-            {
-                return new BadRequestObjectResult("Please pass a valid rating object as json body");
-            }
-            rating.UserIp = this.ipAddressService.GetIpFromRequestHeaders(req);
-            if (string.IsNullOrEmpty(rating.UserIp))
-            {
-                rating.UserIp = "0.0.0.0";
-            }
-            
-            await ratingDataTableStorage.Init();
-            await ratingDataTableStorage.AddOrUpdateRating(rating);
+        //    string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        //    var rating = JsonConvert.DeserializeObject<Rating>(requestBody);
+        //    if (rating.ItemId == null)
+        //    {
+        //        return new BadRequestObjectResult("Please pass a valid rating object as json body");
+        //    }
 
-            return new OkResult();
-        }
+        //    // fill the rating.UserIp property using this.ipAddressService
+        //    // if ip is empty, then fill it with a dummy ip like 0.0.0.0
+
+        //    // add the rating object to Azure Table Storage using this.ratingDataTableStorage
+
+        //    return new AcceptedResult();
+        //}
     }
 }
