@@ -20,7 +20,6 @@ using Swashbuckle.AspNetCore.Swagger;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Devspaces.Support;
 
 namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
 {
@@ -48,7 +47,6 @@ namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
 
             services.AddCustomMvc(Configuration)
                  .AddCustomAuthentication(Configuration)
-                 .AddDevspaces()
                  .AddHttpServices();
         }
 
@@ -190,18 +188,15 @@ namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
             services.AddHttpClient<IBasketService, BasketService>()
                 .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
                 .AddPolicyHandler(GetRetryPolicy())
-                .AddPolicyHandler(GetCircuitBreakerPolicy())
-                .AddDevspacesSupport();
+                .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             services.AddHttpClient<ICatalogService, CatalogService>()
                    .AddPolicyHandler(GetRetryPolicy())
-                   .AddPolicyHandler(GetCircuitBreakerPolicy())
-                   .AddDevspacesSupport();
+                   .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             services.AddHttpClient<IOrderApiClient, OrderApiClient>()
                    .AddPolicyHandler(GetRetryPolicy())
-                   .AddPolicyHandler(GetCircuitBreakerPolicy())
-                   .AddDevspacesSupport();
+                   .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             return services;
         }
