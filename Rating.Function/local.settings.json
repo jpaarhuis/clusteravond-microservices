@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "RatingDataStorage": "UseDevelopmentStorage=true"
+  },
+  "Host": {
+    "LocalHttpPort": 5860,
+    "CORS": "http://localhost:4200",
+    "CORSCredentials": true
+  }
+}
