@@ -32,6 +32,7 @@
                  *ngFor="let item of catalog?.data">
 
                 <img class="esh-catalog-thumbnail" src="{{item.pictureUri}}" />
+                
                 <button [ngClass]="{'esh-catalog-button': true, 'is-disabled': !authenticated}" (click)="addToCart(item)">
                     [ ADD TO CART ]
                 </button>
@@ -42,6 +43,9 @@
                 <div class="esh-catalog-price">
                     <span>{{item.price | number:'3.2-2'}}</span>
                 </div>
+
+                <star-rating size="large" [hoverEnabled]="true" [rating]="ratings[item.id]" (ratingChange)="onRatingChange(item, $event)">
+                </star-rating>
             </div>
         </div>
 

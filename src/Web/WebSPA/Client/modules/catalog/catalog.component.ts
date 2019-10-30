@@ -1,16 +1,17 @@
-import { Component, OnInit }    from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { catchError }           from 'rxjs/operators';
-
-import { CatalogService }       from './catalog.service';
+import { catchError } from 'rxjs/operators';
+import { Rating } from '../rating/rating';
+import { RatingService } from '../rating/rating.service';
+import { ICatalog } from '../shared/models/catalog.model';
+import { ICatalogBrand } from '../shared/models/catalogBrand.model';
+import { ICatalogItem } from '../shared/models/catalogItem.model';
+import { ICatalogType } from '../shared/models/catalogType.model';
+import { IPager } from '../shared/models/pager.model';
+import { BasketWrapperService } from '../shared/services/basket.wrapper.service';
 import { ConfigurationService } from '../shared/services/configuration.service';
-import { ICatalog }             from '../shared/models/catalog.model';
-import { ICatalogItem }         from '../shared/models/catalogItem.model';
-import { ICatalogType }         from '../shared/models/catalogType.model';
-import { ICatalogBrand }        from '../shared/models/catalogBrand.model';
-import { IPager }               from '../shared/models/pager.model';
-import { BasketWrapperService}  from '../shared/services/basket.wrapper.service';
-import { SecurityService }      from '../shared/services/security.service';
+import { SecurityService } from '../shared/services/security.service';
+import { CatalogService } from './catalog.service';
 
 @Component({
     selector: 'esh-catalog .esh-catalog',
@@ -27,15 +28,16 @@ export class CatalogComponent implements OnInit {
     authenticated: boolean = false;
     authSubscription: Subscription;
     errorReceived: boolean;
+    ratings: number[] = [];
 
-    constructor(private service: CatalogService, private basketService: BasketWrapperService, private configurationService: ConfigurationService, private securityService: SecurityService) {
+    constructor(private ratingService: RatingService, private service: CatalogService, private basketService: BasketWrapperService, private configurationService: ConfigurationService, private securityService: SecurityService) {
         this.authenticated = securityService.IsAuthorized;
     }
 
     ngOnInit() {
 
         // Configuration Settings:
-        if (this.configurationService.isReady) 
+        if (this.configurationService.isReady)
             this.loadData();
         else
             this.configurationService.settingsLoaded$.subscribe(x => {
@@ -52,6 +54,15 @@ export class CatalogComponent implements OnInit {
         this.getBrands();
         this.getCatalog(10, 0);
         this.getTypes();
+        this.getRatings();
+    }
+
+    getRatings() {
+        this.ratingService.getAverageRatings().subscribe(ratings => {
+            ratings.forEach(rating => {
+                this.ratings[rating.itemId] = rating.ratingValue;
+            });
+        });
     }
 
     onFilterApplied(event: any) {
@@ -76,6 +87,14 @@ export class CatalogComponent implements OnInit {
         this.getCatalog(this.paginationInfo.itemsPage, value);
     }
 
+    onRatingChange(item: ICatalogItem, $event: any) {
+        const rating = new Rating();
+        rating.itemId = item.id;
+        rating.ratingValue = $event.rating;
+
+        this.ratingService.addRating(rating).subscribe();
+    }
+
     addToCart(item: ICatalogItem) {
         this.basketService.addItemToBasket(item);
     }
@@ -87,13 +106,13 @@ export class CatalogComponent implements OnInit {
             .subscribe(catalog => {
                 this.catalog = catalog;
                 this.paginationInfo = {
-                    actualPage : catalog.pageIndex,
-                    itemsPage : catalog.pageSize,
-                    totalItems : catalog.count,
+                    actualPage: catalog.pageIndex,
+                    itemsPage: catalog.pageSize,
+                    totalItems: catalog.count,
                     totalPages: Math.ceil(catalog.count / catalog.pageSize),
                     items: catalog.pageSize
                 };
-        });
+            });
     }
 
     getTypes() {

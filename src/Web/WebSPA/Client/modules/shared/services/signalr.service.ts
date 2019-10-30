@@ -1,9 +1,9 @@
 ﻿import { Injectable } from '@angular/core';
-import { SecurityService } from './security.service';
-import { ConfigurationService } from './configuration.service';
-import { HubConnection, HubConnectionBuilder, LogLevel, HttpTransportType } from '@aspnet/signalr';
+import { HttpTransportType, HubConnection, HubConnectionBuilder, LogLevel } from '@aspnet/signalr';
 import { ToastrService } from 'ngx-toastr';
 import { Subject } from 'rxjs';
+import { ConfigurationService } from './configuration.service';
+import { SecurityService } from './security.service';
 
 @Injectable()
 export class SignalrService {
@@ -25,7 +25,7 @@ export class SignalrService {
                 this.SignalrHubUrl = this.configurationService.serverSettings.signalrHubUrl;
                 this.init();
             });
-        }            
+        }
     }
 
     public stop() {
@@ -33,11 +33,11 @@ export class SignalrService {
     }
 
     private init() {
-        if (this.securityService.IsAuthorized == true) {
-            this.register();
-            this.stablishConnection();
-            this.registerHandlers();            
-        }        
+        // if (this.securityService.IsAuthorized == true) {
+        //     this.register();
+        //     this.stablishConnection();
+        //     this.registerHandlers();
+        // }
     }
 
     private register() {
@@ -53,10 +53,10 @@ export class SignalrService {
     private stablishConnection() {
         this._hubConnection.start()
             .then(() => {
-                console.log('Hub connection started')
+                console.log('Hub connection started');
             })
             .catch(() => {
-                console.log('Error while establishing connection')
+                console.log('Error while establishing connection');
             });
     }
 

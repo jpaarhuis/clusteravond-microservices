@@ -1,21 +1,20 @@
 import { Injectable } from '@angular/core';
-import { Response } from '@angular/http';
-
-import { DataService } from '../shared/services/data.service';
-import { ConfigurationService } from '../shared/services/configuration.service';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ICatalog } from '../shared/models/catalog.model';
 import { ICatalogBrand } from '../shared/models/catalogBrand.model';
 import { ICatalogType } from '../shared/models/catalogType.model';
+import { ConfigurationService } from '../shared/services/configuration.service';
+import { DataService } from '../shared/services/data.service';
 
-import { Observable } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+
 
 @Injectable()
 export class CatalogService {
     private catalogUrl: string = '';
     private brandUrl: string = '';
     private typesUrl: string = '';
-  
+
     constructor(private service: DataService, private configurationService: ConfigurationService) {
         this.configurationService.settingsLoaded$.subscribe(x => {
             this.catalogUrl = this.configurationService.serverSettings.purchaseUrl + '/api/v1/c/catalog/items';
@@ -33,7 +32,7 @@ export class CatalogService {
         else if (brand) {
             url = this.catalogUrl + '/type/all' + '/brand/' + ((brand) ? brand.toString() : '');
         }
-      
+
         url = url + '?pageIndex=' + pageIndex + '&pageSize=' + pageSize;
 
         return this.service.get(url)
@@ -60,5 +59,5 @@ export class CatalogService {
                     return response;
                 })
             );
-    };
+    }
 }
