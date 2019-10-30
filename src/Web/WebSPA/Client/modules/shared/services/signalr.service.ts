@@ -29,7 +29,7 @@ export class SignalrService {
     }
 
     public stop() {
-        this._hubConnection.stop();
+        // this._hubConnection.stop();
     }
 
     private init() {

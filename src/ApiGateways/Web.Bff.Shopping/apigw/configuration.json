@@ -12,6 +12,9 @@
       "UpstreamPathTemplate": "/api/{version}/c/{everything}",
       "UpstreamHttpMethod": [ "GET" ]
     },
+    // implement missing basket service here
+    // incoming url for example is /api/v1/b/basket/0eb332c7-4eab-4d62-b442-6a87eca9c5c6
+    // and must go to http://localhost:5103/api/v1/basket/0eb332c7-4eab-4d62-b442-6a87eca9c5c6
     {
       "DownstreamPathTemplate": "/api/{version}/{everything}",
       "DownstreamScheme": "http",
